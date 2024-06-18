@@ -1,0 +1,22 @@
+.d-none{
+    display: none !important;
+}
+.dfc__animated{
+    animation: dfc__appear 0.5s ease-in-out 1;
+    transition-property: display, max-height;
+    transition-duration: 0.5s;
+    transition-behavior: allow-discrete;
+    max-height: 1000px;
+}
+.dfc__animated.d-none{
+    animation: dfc__disappear 0.5s ease-in-out 1;
+    max-height: 0;
+}
+@keyframes dfc__appear {
+    from { opacity: 0; max-height: 0; }
+    to { opacity: 1; max-height: 1000px; }
+}
+@keyframes dfc__disappear {
+    from { opacity: 1; max-height: 1000px; display: block!important; }
+    to { opacity: 0; max-height: 0; display: none!important; }
+}

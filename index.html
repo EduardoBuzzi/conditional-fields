@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DynamicFields</title>
+  </head>
+  <body>
+    <div id="app">
+      <div>
+        <a href="https://vitejs.dev" target="_blank" style="text-align: center; margin: auto; width: 100%; display: block;">
+          <img src="public/vite.svg" class="logo" alt="Vite logo" />
+        </a>
+        <h1>DynamicFields</h1>
+
+        <form class="card">
+          <fieldset>
+            <div>
+              <label class="form-label">
+                Você tem site?
+              </label>
+              
+              <div class="form-option">
+                <label class="form-check-label">
+                  <input id="has_website" name="has_website" type="radio" value="Sim">
+                  Sim
+                </label>
+              </div>
+            
+              <div class="form-option">
+                <label class="form-check-label">
+                  <input id="has_website" name="has_website" type="radio" value="Não">
+                  Não
+                </label>
+              </div>
+            </div>
+  
+            <div>
+              <label class="form-label" for="website">Link do seu site</label>
+              <input class="form-control" type="text" id="website" placeholder="Link do seu site" required>
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <div>
+              <label class="form-label">
+                Quais produtos?
+              </label>
+              
+              <div class="form-option">
+                <label class="form-check-label">
+                  <input id="interest_pc" name="interest" type="checkbox" value="Computador">
+                  Computador
+                </label>
+              </div>
+            
+              <div class="form-option">
+                <label class="form-check-label">
+                  <input id="interest_mob" name="interest" type="checkbox" value="Celular">
+                  Celular
+                </label>
+              </div>
+            
+              <div class="form-option">
+                <label class="form-check-label">
+                  <input id="interest_other" name="interest" type="checkbox" value="Outro">
+                  Outro
+                </label>
+              </div>
+            </div>
+            <div id="interest_others_block">
+              <div>
+                <label class="form-label" for="interest_others">Informe aqui</label>
+                <input class="form-control" type="text" id="interest_others" placeholder="Outros produtos" required>
+              </div>
+              <div style="margin-top: 1rem;">
+                <label class="form-label" for="quantity">Quantidade</label>
+                <select class="form-control" id="quantity">
+                  <option value="">Selecione</option>
+                  <option value="1">1</option>
+                  <option value="2">2</option>
+                  <option value="3">3</option>
+                </select>
+              </div>
+              <div style="margin-top: 1rem;">
+                <label class="form-label">
+                  Garantia?
+                </label>
+                
+                <div class="form-option">
+                  <label class="form-check-label">
+                    <input id="warranty_yes" name="warranty" type="radio" value="Sim">
+                    Sim, quero garantia.
+                  </label>
+                </div>
+              
+                <div class="form-option">
+                  <label class="form-check-label">
+                    <input id="warranty_no" name="warranty" type="radio" value="Não">
+                    Não, valeu
+                  </label>
+                </div>
+              </div>
+              <div style="margin-top: 1rem;">
+                <label class="form-label">
+                  O que mais?
+                </label>
+                
+                <div class="form-option">
+                  <label class="form-check-label">
+                    <input id="what_more_comp" name="what_more" type="checkbox" value="Componentes">
+                    Componentes
+                  </label>
+                </div>
+              
+                <div class="form-option">
+                  <label class="form-check-label">
+                    <input id="what_more_part" name="what_more" type="checkbox" value="Peças">
+                    Peças
+                  </label>
+                </div>
+              </div>
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <div>
+              <label class="form-label" for="contact">Qual a forma de contato?</label>
+              <select class="form-control" id="contact" required>
+                <option value="">Selecione</option>
+                <option value="E-mail">E-mail</option>
+                <option value="Whatsapp">Whatsapp</option>
+                <option value="Telefone">Telefone</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="form-label" for="message">Mensagem</label>
+              <textarea class="form-control" id="message" placeholder="Mensagem" required></textarea>
+            </div>
+            
+          </fieldset>
+
+          <button style="width: 100%;" id="btn">Enviar</button>
+        </form>
+
+        <p class="read-the-docs">
+          Altere as opções dos campos para mostrar e ocultar os campos dinamicamente.
+        </p>
+      </div>
+    </div>
+    <script type="module" src="/src/page.ts"></script>
+    <script type="module" src="/src/dynamicFields.ts"></script>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        const form = document.querySelector('form')
+        form.addEventListener('submit', (event) => {
+          event.preventDefault()
+          const formData = new FormData(form)
+          const data = Object.fromEntries(formData)
+          console.log(data)
+        })
+
+        setupDynamicFields([
+          {
+            trigger: '#has_website',
+            value: 'Sim',
+            affected: {
+                fields: [
+                  {selector: '#website', required: true, associatedElements: ['label[for="website"]']},
+                ],
+            },
+            clearOnHide: false
+          },
+          {
+            trigger: '[name=interest]',
+            value: 'Outro',
+            affected: {
+                block: '#interest_others_block',
+                fields: [
+                  {selector: '#interest_others', required: true},
+                  {selector: '#quantity', required: true},
+                  {selector: '[name=warranty]', required: true},
+                  {selector: '[name=what_more]', required: true},
+                ],
+            },
+          },
+          {
+            trigger: '#contact',
+            value: 'E-mail',
+            affected: {
+                fields: [
+                  {selector: '#message', required: true},
+                ],
+                parentSelectorForFields: (element) => element.parentElement,
+            },
+          },
+        ])
+      })
+      
+    </script>
+  </body>
+</html>
