@@ -1,73 +1,63 @@
-// precisa ver o required do checkbox
-
-
-
-
-
-
-
-
-
-
-
-
-
-import { Config, Field, InputElement } from './types';
-import styles from './dynamicFields.css?inline';
-
-declare global {
-  interface Window { setupDynamicFields: (config: Config[], initialCheck?: boolean) => void; }
-}
-
-window.setupDynamicFields = setupDynamicFields;
+import { ConditionalField } from './field'
+import { Config, InputElement, IField, AffectedField } from './types'
+import styles from './dynamicFields.css?inline'
 
 function setupDynamicFields(config: Array<Config>, initialCheck: boolean = true) {
-    addUtilityClasses();
     if (!config || !config.length) {
-        return
+        throw new Error('No configuration provided');
     }
 
-    config.forEach(function (config) {
-        const triggers: NodeListOf<InputElement> = document.querySelectorAll(config.trigger);
+    addUtilityClasses()
+    initialize(config)
+
+
+    function initialize(config: Array<Config>) {
+        config.forEach(function (config) {
+            prepareConfig(config)
+        })
+    }
+
+    function prepareConfig(config: Config): Config {
+        const triggers: NodeListOf<InputElement> = document.querySelectorAll(config.trigger)
         const affectedBlock = config.affected.block ? document.querySelector(config.affected.block) : null
         if (affectedBlock) {
             affectedBlock.classList.add('dfc__animated')
         }
-        const affectedFields: Array<Field> = config.affected.fields.map(function (fieldConfig: Field) {
-            fieldConfig.elements = document.querySelectorAll(fieldConfig.selector);
+        const affectedFields: Array<IField> = config.affected.fields.map(function (fieldConfig: AffectedField) {
+            return ConditionalField.createField(fieldConfig.selector, fieldConfig.required, fieldConfig.associatedElements as string[]);
 
             // defining the parent element for the field from global config
-            if (config.affected.parentSelectorForFields && !fieldConfig.parentSelector) {
-                fieldConfig.parentSelector = config.affected.parentSelectorForFields as (element: HTMLElement) => HTMLElement;
-            }
+            // if (config.affected.parentSelectorForFields && !fieldConfig.parentSelector) {
+            //     fieldConfig.parentSelector = config.affected.parentSelectorForFields as (element: HTMLElement) => HTMLElement;
+            // }
 
-            // applying the 'dfc__animated' class to the element
-            if (!affectedBlock) {
-                if (fieldConfig.parentSelector) {
-                    fieldConfig.elements.forEach((element) => {
-                        const parent = fieldConfig.parentSelector?.(element);
-                        if (parent) parent.classList.add('dfc__animated');
-                    });
-                } else {
-                    fieldConfig.elements.forEach((element) => {
-                        element.classList.add('dfc__animated');
-                    });
-                }
-            }
+            // // applying the 'dfc__animated' class to the element
+            // if (!affectedBlock) {
+            //     if (fieldConfig.parentSelector) {
+            //         fieldConfig.elements.forEach((element) => {
+            //             const parent = fieldConfig.parentSelector?.(element);
+            //             if (parent) parent.classList.add('dfc__animated');
+            //         });
+            //     } else {
+            //         fieldConfig.elements.forEach((element) => {
+            //             element.classList.add('dfc__animated');
+            //         });
+            //     }
+            // }
 
-            // proccessing associated elements
-            if (fieldConfig.associatedElements) {
-                fieldConfig.associatedElements = fieldConfig.associatedElements.map(selector => {
-                    const associatedElement = document.querySelector(selector as string) as HTMLElement | null;
-                    if (associatedElement) {
-                        associatedElement.classList.add('dfc__animated');
-                        return associatedElement;
-                    }
-                    return null;
-                }).filter(element => element !== null);
-            }
+            // // proccessing associated elements
+            // if (fieldConfig.associatedElements) {
+            //     fieldConfig.associatedElements = fieldConfig.associatedElements.map(selector => {
+            //         const associatedElement = document.querySelector(selector as string) as HTMLElement | null;
+            //         if (associatedElement) {
+            //             associatedElement.classList.add('dfc__animated');
+            //             return associatedElement;
+            //         }
+            //         return null;
+            //     }).filter(element => element !== null);
+            // }
 
-            return fieldConfig;
+            // return fieldConfig;
         });
 
         if (!triggers.length) return
@@ -163,7 +153,7 @@ function setupDynamicFields(config: Array<Config>, initialCheck: boolean = true)
             }
             return triggers[0]?.value || null;
         }
-    })
+    }
 
     function discoverEvent(trigger: InputElement) {
         if (trigger.tagName === 'SELECT' || trigger.tagName === 'TEXTAREA') {
@@ -202,4 +192,8 @@ function setupDynamicFields(config: Array<Config>, initialCheck: boolean = true)
             document.head.appendChild(style);
         }
     }
+}
+
+if (typeof (window) !== 'undefined') {
+	window.setupDynamicFields = setupDynamicFields;
 }
