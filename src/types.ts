@@ -1,5 +1,5 @@
 declare global {
-    interface Window { setupDynamicFields: (config: Config[], initialCheck?: boolean) => void; }
+    interface Window { setupConditionalFields: (config: Config[], initialCheck?: boolean) => void; }
 }
 
 export type Config = {
@@ -26,12 +26,12 @@ export type AffectedField = {
 }
 
 export interface IField {
-    elements: NodeListOf<HTMLElement>
+    selector: string
+    elements: Array<HTMLElement>
     required: boolean
-    associatedElements: Array<HTMLElement>
 
     clear(): void
-    getEventName(): string
+    getEventName(): string | null
     setRequired(required: boolean): void
     toggleVisibility(show: boolean): void
 }

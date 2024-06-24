@@ -12,12 +12,12 @@ export default defineConfig({
         properties: {
           regex: /^_/,
         },
-        reserved: ['setupDynamicFields']
+        reserved: ['setupConditionalFields']
       }
     },
     lib: {
-      entry: './src/dynamicFields.ts',
-      name: 'DynamicFields',
+      entry: './src/conditionalFields.ts',
+      name: 'conditionalFields',
       fileName: (format) => `dynamic-fields.${format}.js`,
       formats: ['es', 'umd'],
     },

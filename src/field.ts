@@ -1,49 +1,190 @@
-import { IField } from './types';
+import { IField, AffectedField } from './types';
 
-export abstract class ConditionalField implements IField{
-    elements: NodeListOf<HTMLElement>;
-    required: boolean;
-    associatedElements: Array<HTMLElement>;
+export class ConditionalField{
 
-    constructor(selector: string, required: boolean = false, associatedSelectors: string[] = []) {
-        this.elements = document.querySelectorAll(selector);
-        this.required = required;
-        this.associatedElements = associatedSelectors.map(selector => {
-            return document.querySelector(selector);
-        }).filter(element => element !== null) as Array<HTMLElement>;
-        this.addClass(this.elements);
-        this.addClass(this.associatedElements);
+    /**
+     * Selector of the field elements in the DOM that will trigger the conditional field.
+     */
+    triggerSelector: string;
+
+    /**
+     * Field responsible for the conditional behavior.
+     */
+    trigger: Field;
+
+    value: string | Array<string>;
+
+    /**
+     * If the dependent field should be required when the trigger rule is met.
+     */
+    shouldBeRequired: boolean;
+
+    /**
+     * If the dependent field should be cleared when the trigger rule is not met.
+     */
+    clearOnHide: boolean;
+    
+    /**
+     * Array of elements that are affected by the conditional field.
+     * These elements will be affected when the trigger rule is met.
+     */
+    affectedFields?: Array<Field>;
+
+    constructor(triggerSelector: string, value: string | string[], shouldBeRequired: boolean = false, clearOnHide: boolean = true, affectedFields: AffectedField[] = []) {
+        this.triggerSelector = triggerSelector;
+        this.trigger = Field.createField(triggerSelector);
+        this.shouldBeRequired = shouldBeRequired;
+        this.clearOnHide = clearOnHide;
+        this.value = typeof value === 'string' ? [value] : value;
+        
+        this.affectedFields = affectedFields.map(affectedField => {
+            return Field.createField(affectedField.selector, affectedField.required, affectedField.associatedElements, affectedField.parentSelector);
+        }).filter(element => element !== null) as Array<Field>;
+
+        this.initialize();
     }
 
-    private addClass(elements: NodeListOf<HTMLElement> | Array<HTMLElement>) {
-        elements.forEach(element => {
-            element.classList.add('dfc__animated');
+    private initialize() {
+        this.trigger.addEventListener(this.handleEvent);
+    }
+
+    private handleEvent = (event: Event) => {
+        const trigger = event.target as HTMLInputElement;
+        const show = this.value.includes(trigger.value);
+        this.affectedFields?.forEach(field => {
+            field.toggleVisibility(show);
+            field.setRequired(show && this.shouldBeRequired);
+            if (!show && this.clearOnHide) {
+                field.clear();
+            }
         });
     }
 
-    static createField(selector: string, required: boolean = false, associatedSelectors: string[] = []): IField {
-        const elements = document.querySelectorAll(selector);
-        if (elements.length === 0) {
+    // toggleVisibility(show: boolean) {
+    //     const action = show ? 'remove' : 'add';
+    //     this.elements.forEach(element => {
+    //         element.classList[action]('d-none');
+    //     });
+    //     this.associatedElements.forEach(element => {
+    //         (element as HTMLElement).classList[action]('d-none');
+    //     });
+    // }
+
+}
+
+export abstract class Field implements IField {
+
+    /**
+     * Selector of the field elements in the DOM.
+     */
+    selector: string;
+
+    /**
+     * Array of elements that are part of the field.
+     * For example, a field can have multiple radio buttons.
+     */
+    elements: Array<HTMLElement>;
+
+    /**
+     * Flag to indicate if the field is required.
+     */
+    required: boolean;
+
+    /**
+     * Array of elements that are associated with the field.
+     * For example, a field can have a label that should be hidden when the field is hidden.
+     * Useful when you haven't a parent selector for the field.
+     */
+    associatedElements?: Array<HTMLElement>;
+
+    /**
+     * Informed function to get the parent element of the field, like a form-group div.
+     * Used to show/hide the parent element when the field needs to be shown/hidden.
+     * @param element Field element.
+     */
+    parentSelector?: (element: HTMLElement) => HTMLElement;
+
+    /**
+     * @param selector Selector of the field elements in the DOM.
+     * @param required Flag to indicate if the field is required.
+     */
+    constructor(selector: string, required: boolean = false, associatedElements?: string[] | null, parentSelector?: (element: HTMLElement) => HTMLElement) {
+        this.selector = selector;
+        this.required = required;
+        this.elements = this.getElements(selector);
+        this.addClass(this.elements);
+        if (associatedElements) {
+            this.associatedElements = this.getElements(associatedElements);
+            this.addClass(this.associatedElements);
+        }
+        this.parentSelector = parentSelector;
+    }
+
+    /**
+     * Method to create a new instance of the Field class.
+     * @param selector Selector of the field elements in the DOM.
+     * @param required Flag to indicate if the field is required.
+     * @returns Returns a new instance of the Field class.
+     */
+    static createField(selector: string, required: boolean = false, associatedElements?: string[] | null, parentSelector?: (element: HTMLElement) => HTMLElement): Field {
+        let firstElement: HTMLElement | null;
+        if (!(firstElement = document.querySelector(selector))) {
             throw new Error(`No elements found for selector: ${selector}`);
         }
 
-        const firstElement = elements[0];
-
         if (firstElement.tagName === 'INPUT') {
-            return new InputField(selector, required, associatedSelectors);
+            return new InputField(selector, required, associatedElements, parentSelector);
         } else if (firstElement.tagName === 'SELECT') {
-            return new SelectField(selector, required, associatedSelectors);
+            return new SelectField(selector, required, associatedElements, parentSelector);
         } else if (firstElement.tagName === 'TEXTAREA') {
-            return new TextareaField(selector, required, associatedSelectors);
+            return new TextareaField(selector, required, associatedElements, parentSelector);
         } else {
-            throw new Error(`Unsupported field type for selector: ${selector}`);
+            return new ElementField(selector, required, associatedElements, parentSelector);
+        }
+    }
+
+    private getElements(selector: string | string[]): Array<HTMLElement>{
+        const elements = document.querySelectorAll(
+            Array.isArray(selector) ? 
+            selector.join(',') : 
+            selector) as NodeListOf<HTMLElement>;
+        if (elements.length === 0) {
+            throw new Error(`No elements found for selector: ${selector}`);
+        }
+        return Array.from(elements);
+    }
+
+    private addClass(elements: Array<HTMLElement>) {
+        elements.forEach(element => {
+            element.classList.add('dfc__animated'); // animated class is used for CSS animations
+        });
+
+        if (this.parentSelector) {
+            elements.forEach(element => {
+                const parent = this.parentSelector?.(element);
+                if (parent) {
+                    parent.classList.add('dfc__animated');
+                }
+            });
         }
     }
 
     abstract clear(): void;
-    abstract getEventName(): string;
+    abstract getEventName(): string | null;
 
-    setRequired(required: boolean): void {
+    /**
+     * Method to handle the event of the field.
+     */
+    addEventListener(handler: (event: Event) => void, eventName: string | null = this.getEventName()) {
+
+        if (!eventName) return;
+        
+        this.elements.forEach(element => {
+            element.addEventListener(eventName, handler);
+        });
+    }
+
+    setRequired(required: boolean) {
         this.required = required;
         this.elements.forEach(element => {
             (element as HTMLInputElement).required = required;
@@ -52,17 +193,24 @@ export abstract class ConditionalField implements IField{
 
     toggleVisibility(show: boolean) {
         const action = show ? 'remove' : 'add';
-        this.elements.forEach(element => {
-            element.classList[action]('d-none');
-        });
-        this.associatedElements.forEach(element => {
-            (element as HTMLElement).classList[action]('d-none');
-        });
+
+        if (this.parentSelector) {
+            this.elements.forEach(element => {
+                const parent = this.parentSelector?.(element);
+                if (parent) {
+                    parent.classList[action]('d-none');
+                }
+            });
+        } else {
+            this.elements.forEach(element => {
+                element.classList[action]('d-none');
+            });
+        }
     }
 
 }
 
-export class InputField extends ConditionalField {
+export class InputField extends Field {
     clear() {
         this.elements.forEach(element => {
             const input = element as HTMLInputElement;
@@ -74,7 +222,7 @@ export class InputField extends ConditionalField {
         });
     }
 
-    getEventName(): string {
+    getEventName() {
         const type = (this.elements[0] as HTMLInputElement).type;
         if (type === 'checkbox' || type === 'radio' || type === 'file') {
             return 'change';
@@ -110,7 +258,23 @@ export class TextareaField extends Field {
         });
     }
 
-    getEventName(): string {
+    getEventName() {
         return 'input';
+    }
+}
+
+/**
+ * Field class for generic elements.
+ * It can be used for elements like div, span, etc.
+ */
+export class ElementField extends Field {
+    clear() {
+        // there is no way to clear a generic element
+        return;
+    }
+
+    getEventName() {
+        // there is no way to know the event name for a generic element
+        return null;
     }
 }

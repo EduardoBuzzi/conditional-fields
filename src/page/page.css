@@ -11,6 +11,7 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  accent-color: #00d8e0;
 }
 * {
   box-sizing: border-box;
@@ -18,7 +19,7 @@
 
 a {
   font-weight: 500;
-  color: #646cff;
+  color: #00d8e0;
   text-decoration: inherit;
 }
 a:hover {
@@ -34,30 +35,29 @@ body {
 }
 
 h1 {
-  font-size: 3.2em;
+  font-size: 2.2em;
   line-height: 1.1;
   text-align: center;
+  margin-top: 0;
 }
 
 #app {
   max-width: 1280px;
   margin: 0 auto;
   padding: 2rem;
-  /* text-align: center; */
 }
 
 .logo {
   height: 6em;
-  padding: 1.5em;
   will-change: filter;
   transition: filter 300ms;
   text-align: center;
 }
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
+#app:has(input:focus ) .logo {
+  filter: drop-shadow(0 0 2em #00d8e0aa);
 }
-.logo.vanilla:hover {
-  filter: drop-shadow(0 0 2em #3178c6aa);
+.logo:hover {
+  filter: drop-shadow(0 0 2em #00d8e0aa);
 }
 
 .card {
@@ -80,7 +80,7 @@ button {
   transition: border-color 0.25s;
 }
 button:hover {
-  border-color: #646cff;
+  border-color: #00d8e0;
 }
 button:focus,
 button:focus-visible {
