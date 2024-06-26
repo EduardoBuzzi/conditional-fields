@@ -13,7 +13,7 @@ export type Config = {
 export type Affected = {
     block?: string // block that contains the fields (optional)
     fields: Array<AffectedField>  // fields that will be affected
-    parentSelectorForFields?: (element: HTMLElement) => HTMLElement | null // function that returns the parent element of the fields to show/hide
+    parentSelector?: (element: HTMLElement) => HTMLElement | null // function that returns the parent element of the fields to show/hide
 }
 
 export type AffectedField = {
@@ -21,8 +21,8 @@ export type AffectedField = {
     required?: boolean
     shouldHide?: boolean
     elements?: NodeListOf<InputElement> | null
-    associatedElements?: (HTMLElement | string | null)[] // elements that should be hidden when this field is hidden
-    parentSelector?: (element: HTMLElement) => HTMLElement // function that returns the parent element of the field to show/hide
+    associatedElements?: string[] | null // elements that should be hidden when this field is hidden
+    parentSelector?: (element: HTMLElement) => HTMLElement | null // function that returns the parent element of the field to show/hide
 }
 
 export interface IField {
@@ -34,6 +34,7 @@ export interface IField {
     getEventName(): string | null
     setRequired(required: boolean): void
     toggleVisibility(show: boolean): void
+    getValues(): string[]
 }
 
 export type InputElement = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement

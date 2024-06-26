@@ -30,7 +30,14 @@ export class ConditionalField{
      */
     affectedFields?: Array<Field>;
 
-    constructor(triggerSelector: string, value: string | string[], shouldBeRequired: boolean = false, clearOnHide: boolean = true, affectedFields: AffectedField[] = []) {
+
+    /**
+     * Block that contains the fields affected by the conditional field.
+     * Useful when you have a group of fields that should be hidden together.
+     */
+    affectedBlock?: HTMLElement | null;
+
+    constructor(triggerSelector: string, value: string | string[], shouldBeRequired: boolean = false, clearOnHide: boolean = true, affectedFields: AffectedField[] = [], affectedBlock?: string, parentSelector?: (element: HTMLElement) => HTMLElement | null){
         this.triggerSelector = triggerSelector;
         this.trigger = Field.createField(triggerSelector);
         this.shouldBeRequired = shouldBeRequired;
@@ -38,37 +45,70 @@ export class ConditionalField{
         this.value = typeof value === 'string' ? [value] : value;
         
         this.affectedFields = affectedFields.map(affectedField => {
+            if (parentSelector && !affectedField.parentSelector) {
+                affectedField.parentSelector = parentSelector;
+            }
             return Field.createField(affectedField.selector, affectedField.required, affectedField.associatedElements, affectedField.parentSelector);
         }).filter(element => element !== null) as Array<Field>;
+
+        if (affectedBlock) {
+            this.affectedBlock = document.querySelector(affectedBlock) as HTMLElement;
+            this.affectedBlock.classList.add('dfc__animated');
+        }
 
         this.initialize();
     }
 
     private initialize() {
-        this.trigger.addEventListener(this.handleEvent);
+        this.trigger.addEventListener(() => {
+            this.check();
+        });
     }
 
-    private handleEvent = (event: Event) => {
-        const trigger = event.target as HTMLInputElement;
-        const show = this.value.includes(trigger.value);
+    check(value: string | null = null) {
+        let show = false;
+        
+        if (!value) {
+            const values = this.trigger.getValues().filter(val => val); // Filtra valores vazios
+            if (values.length === 0) {
+                show = false;
+            } else {
+                show = values.some(val => this.value.includes(val)); // Verifica se pelo menos um valor está presente no array de valores
+            }
+        } else {
+            show = this.value.includes(value);
+        }
+    
+        this.updateVisibility(show);
+        this.updateRequired(show);
+        if (!show && this.clearOnHide) {
+            this.clearFields();
+        }
+    }    
+
+    private updateVisibility(show: boolean) {
+        if (this.affectedBlock) {
+            return this.affectedBlock.classList.toggle('d-none', !show);
+        }
+
         this.affectedFields?.forEach(field => {
             field.toggleVisibility(show);
+        });
+    }
+
+    private updateRequired(show: boolean) {
+        this.affectedFields?.forEach(field => {
             field.setRequired(show && this.shouldBeRequired);
-            if (!show && this.clearOnHide) {
+        });
+    }
+
+    private clearFields() {
+        this.affectedFields?.forEach(field => {
+            if (this.clearOnHide) {
                 field.clear();
             }
         });
     }
-
-    // toggleVisibility(show: boolean) {
-    //     const action = show ? 'remove' : 'add';
-    //     this.elements.forEach(element => {
-    //         element.classList[action]('d-none');
-    //     });
-    //     this.associatedElements.forEach(element => {
-    //         (element as HTMLElement).classList[action]('d-none');
-    //     });
-    // }
 
 }
 
@@ -102,22 +142,21 @@ export abstract class Field implements IField {
      * Used to show/hide the parent element when the field needs to be shown/hidden.
      * @param element Field element.
      */
-    parentSelector?: (element: HTMLElement) => HTMLElement;
+    parentSelector?: (element: HTMLElement) => HTMLElement | null;
 
     /**
      * @param selector Selector of the field elements in the DOM.
      * @param required Flag to indicate if the field is required.
      */
-    constructor(selector: string, required: boolean = false, associatedElements?: string[] | null, parentSelector?: (element: HTMLElement) => HTMLElement) {
+    constructor(selector: string, required: boolean = false, associatedElements?: string[] | null, parentSelector?: (element: HTMLElement) => HTMLElement | null) {
         this.selector = selector;
         this.required = required;
         this.elements = this.getElements(selector);
-        this.addClass(this.elements);
+        this.parentSelector = parentSelector;
         if (associatedElements) {
             this.associatedElements = this.getElements(associatedElements);
-            this.addClass(this.associatedElements);
         }
-        this.parentSelector = parentSelector;
+        this.addClass(this.elements);
     }
 
     /**
@@ -126,7 +165,7 @@ export abstract class Field implements IField {
      * @param required Flag to indicate if the field is required.
      * @returns Returns a new instance of the Field class.
      */
-    static createField(selector: string, required: boolean = false, associatedElements?: string[] | null, parentSelector?: (element: HTMLElement) => HTMLElement): Field {
+    static createField(selector: string, required: boolean = false, associatedElements?: string[] | null, parentSelector?: (element: HTMLElement) => HTMLElement | null): Field {
         let firstElement: HTMLElement | null;
         if (!(firstElement = document.querySelector(selector))) {
             throw new Error(`No elements found for selector: ${selector}`);
@@ -167,10 +206,18 @@ export abstract class Field implements IField {
                 }
             });
         }
+
+        if (this.associatedElements) {
+            this.associatedElements.forEach(element => {
+                element.classList.add('dfc__animated');
+            });
+        }
     }
 
     abstract clear(): void;
     abstract getEventName(): string | null;
+    abstract getValues(): string[];
+
 
     /**
      * Method to handle the event of the field.
@@ -199,12 +246,20 @@ export abstract class Field implements IField {
                 const parent = this.parentSelector?.(element);
                 if (parent) {
                     parent.classList[action]('d-none');
+                } else {
+                    element.classList[action]('d-none');
                 }
             });
         } else {
             this.elements.forEach(element => {
                 element.classList[action]('d-none');
             });
+
+            if (this.associatedElements) {
+                this.associatedElements.forEach(element => {
+                    element.classList[action]('d-none');
+                });
+            }
         }
     }
 
@@ -220,6 +275,21 @@ export class InputField extends Field {
                 input.value = '';
             }
         });
+    }
+
+    getValues() {
+        const values: string[] = [];
+        this.elements.forEach(element => {
+            const input = element as HTMLInputElement;
+            if (input.type === 'checkbox' || input.type === 'radio') {
+                if (input.checked) {
+                    values.push(input.value);
+                }
+            } else {
+                values.push(input.value);
+            }
+        });
+        return values;
     }
 
     getEventName() {
@@ -245,6 +315,13 @@ export class SelectField extends Field {
         });
     }
 
+    getValues() {
+        return this.elements.map(element => {
+            const select = element as HTMLSelectElement;
+            return select.value;
+        });
+    }
+
     getEventName(): string {
         return 'change';
     }
@@ -255,6 +332,13 @@ export class TextareaField extends Field {
         this.elements.forEach(element => {
             const textarea = element as HTMLTextAreaElement;
             textarea.value = '';
+        });
+    }
+
+    getValues() {
+        return this.elements.map(element => {
+            const textarea = element as HTMLTextAreaElement;
+            return textarea.value;
         });
     }
 
@@ -271,6 +355,12 @@ export class ElementField extends Field {
     clear() {
         // there is no way to clear a generic element
         return;
+    }
+
+    getValues() {
+        return this.elements.map(element => {
+            return element.textContent || '';
+        });
     }
 
     getEventName() {
