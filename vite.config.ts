@@ -16,9 +16,9 @@ export default defineConfig({
       }
     },
     lib: {
-      entry: './src/conditionalFields.ts',
-      name: 'conditionalFields',
-      fileName: (format) => `dynamic-fields.${format}.js`,
+      entry: './src/conditional-fields.ts',
+      name: 'conditional-fields',
+      fileName: (format) => `conditional-fields.${format}.js`,
       formats: ['es', 'umd'],
     },
     rollupOptions: {
