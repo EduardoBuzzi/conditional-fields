@@ -1,14 +1,13 @@
-import { ConditionalField } from './field'
+import { ConditionalField } from './classes'
 import { Config } from './types'
 
-function setupConditionalFields(config: Array<Config>, initialCheck: boolean = true) {
+function setupConditionalFields(config: Array<Config>) {
     if (!config || !config.length) {
         throw new Error('No configuration provided')
     }
 
     config.forEach(function (config) {
-        var cf = new ConditionalField(config.trigger, config.value, true, config.clearOnHide, config.affected.fields, config.affected.block, config.affected.parentSelector)
-        if(initialCheck) cf.check()
+        new ConditionalField(config)
     })
 }
 

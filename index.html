@@ -10,7 +10,7 @@
     <div id="app">
       <div>
         <div style="text-align: center; margin: auto; width: 100%; display: block;">
-          <img width="64" height="64" src="/logo.svg" class="logo" alt="Logo" />
+          <img draggable="false" width="64" height="64" src="/logo.svg" class="logo" alt="Logo" />
         </div>
         <h1>Conditional Fields</h1>
 
@@ -18,106 +18,106 @@
           <fieldset>
             <div>
               <label class="form-label">
-                Você tem site?
+                Do you have a blog?
               </label>
               
               <div class="form-option">
                 <label class="form-check-label">
-                  <input id="has_website" name="has_website" type="radio" value="Sim">
-                  Sim
+                  <input id="has_blog" name="has_blog" type="radio" value="Yes">
+                  Yes
                 </label>
               </div>
             
               <div class="form-option">
                 <label class="form-check-label">
-                  <input id="has_website" name="has_website" type="radio" value="Não">
-                  Não
+                  <input id="has_blog" name="has_blog" type="radio" value="No">
+                  No
                 </label>
               </div>
             </div>
   
             <div>
-              <label class="form-label" for="website">Link do seu site</label>
-              <input class="form-control" type="text" id="website" placeholder="Link do seu site" required>
+              <label class="form-label" for="blog_link">Link to your blog</label>
+              <input class="form-control" type="text" name="blog_link" id="blog_link" placeholder="Link to your blog" required>
             </div>
           </fieldset>
 
           <fieldset>
             <div>
               <label class="form-label">
-                Quais produtos?
+                Which services do you use?
               </label>
               
               <div class="form-option">
                 <label class="form-check-label">
-                  <input id="interest_pc" name="interest" type="checkbox" value="Computador">
-                  Computador
+                  <input id="services_pc" name="services" type="checkbox" value="Streaming">
+                  Streaming
                 </label>
               </div>
             
               <div class="form-option">
                 <label class="form-check-label">
-                  <input id="interest_mob" name="interest" type="checkbox" value="Celular">
-                  Celular
+                  <input id="services_mob" name="services" type="checkbox" value="E-commerce">
+                  E-commerce
                 </label>
               </div>
             
               <div class="form-option">
                 <label class="form-check-label">
-                  <input id="interest_other" name="interest" type="checkbox" value="Outro">
-                  Outro
+                  <input id="services_other" name="services" type="checkbox" value="Other">
+                  Other
                 </label>
               </div>
             </div>
-            <div id="interest_others_block">
+            <div id="services_others_block">
               <div>
-                <label class="form-label" for="interest_others">Informe aqui</label>
-                <input class="form-control" type="text" id="interest_others" placeholder="Outros produtos" required>
+                <label class="form-label" for="services_others">Specify other services</label>
+                <input class="form-control" type="text" name="services_others" id="services_others" placeholder="Specify other services" required>
               </div>
-              <div style="margin-top: 1rem;">
-                <label class="form-label" for="quantity">Quantidade</label>
-                <select class="form-control" id="quantity">
-                  <option value="">Selecione</option>
+              <div class="mt-1">
+                <label class="form-label" for="devices_number">Number of devices</label>
+                <select class="form-control" name="devices_number" id="devices_number">
+                  <option value="">Select</option>
                   <option value="1">1</option>
                   <option value="2">2</option>
-                  <option value="3">3</option>
+                  <option value="3+">3+</option>
                 </select>
               </div>
-              <div style="margin-top: 1rem;">
+              <div class="mt-1">
                 <label class="form-label">
-                  Garantia?
+                  Do you want additional support?
                 </label>
                 
                 <div class="form-option">
                   <label class="form-check-label">
-                    <input id="warranty_yes" name="warranty" type="radio" value="Sim">
-                    Sim, quero garantia.
+                    <input id="support_yes" name="support" type="radio" value="Yes">
+                    Yes, I want support.
                   </label>
                 </div>
               
                 <div class="form-option">
                   <label class="form-check-label">
-                    <input id="warranty_no" name="warranty" type="radio" value="Não">
-                    Não, valeu
+                    <input id="support_no" name="support" type="radio" value="No">
+                    No, thank you
                   </label>
                 </div>
               </div>
-              <div style="margin-top: 1rem;">
+              <div class="mt-1">
                 <label class="form-label">
-                  O que mais?
+                  What additional resources do you need?
                 </label>
                 
                 <div class="form-option">
                   <label class="form-check-label">
-                    <input id="what_more_comp" name="what_more" type="checkbox" value="Componentes">
-                    Componentes
+                    <input id="additional_resources_plugins" name="additional_resources" type="checkbox" value="Plugins">
+                    Plugins
                   </label>
                 </div>
               
                 <div class="form-option">
                   <label class="form-check-label">
-                    <input id="what_more_part" name="what_more" type="checkbox" value="Peças">
-                    Peças
+                    <input id="additional_resources_ext" name="additional_resources" type="checkbox" value="Extensions">
+                    Extensions
                   </label>
                 </div>
               </div>
@@ -126,27 +126,32 @@
 
           <fieldset>
             <div>
-              <label class="form-label" for="contact">Qual a forma de contato?</label>
-              <select class="form-control" id="contact" required>
-                <option value="">Selecione</option>
-                <option value="E-mail">E-mail</option>
-                <option value="Whatsapp">Whatsapp</option>
-                <option value="Telefone">Telefone</option>
+              <label class="form-label" for="payment_method">What is your preferred payment method?</label>
+              <select class="form-control" id="payment_method" name="payment_method" required>
+                <option value="">Select</option>
+                <option value="Credit Card">Credit Card</option>
+                <option value="PayPal">PayPal</option>
+                <option value="Bank Transfer">Bank Transfer</option>
               </select>
             </div>
 
             <div>
-              <label class="form-label" for="message">Mensagem</label>
-              <textarea class="form-control" id="message" placeholder="Mensagem" required></textarea>
+              <label class="form-label" for="comments">Comments or suggestions</label>
+              <textarea class="form-control" id="comments" name="comments" placeholder="Comments or suggestions" required></textarea>
             </div>
             
           </fieldset>
 
-          <button style="width: 100%;" id="btn">Enviar</button>
+          <button class="w-100" id="btn">Send</button>
+
+          <div id="result" role="alert">
+            <h2 class="m-0">Result:</h2>
+            <pre></pre>
+          </div>
         </form>
 
-        <p class="read-the-docs">
-          Altere as opções dos campos para mostrar e ocultar os campos dinamicamente.
+        <p class="read-info">
+          Change the values of the fields to see the conditional fields in action.
         </p>
       </div>
     </div>
@@ -155,44 +160,54 @@
 
     <script>
       document.addEventListener('DOMContentLoaded', () => {
-        const form = document.querySelector('form')
-        form.addEventListener('submit', (event) => {
+        document.querySelector('form').addEventListener('submit', (event) => {
           event.preventDefault()
-          const formData = new FormData(form)
-          const data = Object.fromEntries(formData)
-          console.log(data)
+          const formData = new FormData(event.target)
+          let data = {}
+          for(var pair of formData.entries()) {
+            if (pair[0] in data) {
+              if (!Array.isArray(data[pair[0]])) {
+                data[pair[0]] = [data[pair[0]]]
+              }
+              data[pair[0]].push(pair[1])
+              continue
+            }
+            data[pair[0]] = pair[1]
+          }
+          document.querySelector('#result pre').textContent = JSON.stringify(data, null, 2)
         })
 
         setupConditionalFields([
           {
-            trigger: '#has_website',
-            value: 'Sim',
+            triggerSelector: '#has_blog',
+            value: 'Yes',
             affected: {
                 fields: [
-                  {selector: '#website', required: true, associatedElements: ['label[for="website"]']},
+                  {selector: '#blog_link', required: false, associatedElements: ['label[for="blog_link"]']},
                 ],
             },
-            clearOnHide: false
+            clearOnHide: false,
+            initialCheck: false
           },
           {
-            trigger: '[name=interest]',
-            value: 'Outro',
+            triggerSelector: '[name=services]',
+            value: 'Other',
             affected: {
-                block: '#interest_others_block',
+                block: '#services_others_block',
                 fields: [
-                  {selector: '#interest_others', required: true},
-                  {selector: '#quantity', required: true},
-                  {selector: '[name=warranty]', required: true},
-                  {selector: '[name=what_more]', required: true},
+                  {selector: '#services_others', required: true},
+                  {selector: '#devices_number', required: true},
+                  {selector: '[name=support]', required: true},
+                  {selector: '[name=additional_resources]', required: true},
                 ],
             },
           },
           {
-            trigger: '#contact',
-            value: 'E-mail',
+            triggerSelector: '#payment_method',
+            value: ['PayPal', 'Credit Card', 'Bank Transfer'],
             affected: {
                 fields: [
-                  {selector: '#message', required: true},
+                  {selector: '#comments', required: true},
                 ],
                 parentSelector: (element) => element.parentElement,
             },

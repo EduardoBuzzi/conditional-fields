@@ -1,13 +1,15 @@
 declare global {
-    interface Window { setupConditionalFields: (config: Config[], initialCheck?: boolean) => void; }
+    interface Window { 
+        setupConditionalFields: (config: Config[]) => void; 
+    }
 }
 
 export type Config = {
-    trigger: string
-    value: string
-    event?: string
-    affected: Affected
+    triggerSelector: string
+    value: string | string[]
     clearOnHide?: boolean
+    initialCheck?: boolean
+    affected: Affected
 }
 
 export type Affected = {

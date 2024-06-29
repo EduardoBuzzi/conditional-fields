@@ -1,7 +1,7 @@
-import { IField, AffectedField } from './types'
+import { IField, Config } from './types'
 import styles from './conditional-fields.css?inline'
 
-export class ConditionalField{
+export class ConditionalField {
 
     /**
      * Selector of the field elements in the DOM that will trigger the conditional field.
@@ -13,12 +13,10 @@ export class ConditionalField{
      */
     trigger: Field
 
-    value: string | Array<string>
-
     /**
-     * If the dependent field should be required when the trigger rule is met.
+     * Value that will trigger the conditional field.
      */
-    shouldBeRequired: boolean
+    value: string | Array<string>
 
     /**
      * If the dependent field should be cleared when the trigger rule is not met.
@@ -31,29 +29,33 @@ export class ConditionalField{
      */
     affectedFields?: Array<Field>
 
-
     /**
      * Block that contains the fields affected by the conditional field.
      * Useful when you have a group of fields that should be hidden together.
      */
     affectedBlock?: HTMLElement | null
 
-    constructor(triggerSelector: string, value: string | string[], shouldBeRequired: boolean = false, clearOnHide: boolean = true, affectedFields: AffectedField[] = [], affectedBlock?: string, parentSelector?: (element: HTMLElement) => HTMLElement | null){
-        this.triggerSelector = triggerSelector
-        this.trigger = Field.createField(triggerSelector)
-        this.shouldBeRequired = shouldBeRequired
-        this.clearOnHide = clearOnHide
-        this.value = typeof value === 'string' ? [value] : value
+    /**
+     * Flag to indicate if the conditional field should be checked on initialization.
+     */
+    initialCheck: boolean = true
+
+    constructor(config: Config){
+        this.triggerSelector = config.triggerSelector
+        this.trigger = Field.createField(this.triggerSelector)
+        this.value = typeof config.value === 'string' ? [config.value] : config.value
+        this.clearOnHide = config.clearOnHide ?? true
+        this.initialCheck = config.initialCheck ?? true
         
-        this.affectedFields = affectedFields.map(affectedField => {
-            if (parentSelector && !affectedField.parentSelector) {
-                affectedField.parentSelector = parentSelector
+        this.affectedFields = config.affected.fields.map(affectedField => {
+            if (config.affected.parentSelector && !affectedField.parentSelector) {
+                affectedField.parentSelector = config.affected.parentSelector
             }
             return Field.createField(affectedField.selector, affectedField.required, affectedField.associatedElements, affectedField.parentSelector)
         }).filter(element => element !== null) as Array<Field>
 
-        if (affectedBlock) {
-            this.affectedBlock = document.querySelector(affectedBlock) as HTMLElement
+        if (config.affected.block) {
+            this.affectedBlock = document.querySelector(config.affected.block) as HTMLElement
             this.affectedBlock.classList.add('dcf__animated')
         }
 
@@ -65,6 +67,7 @@ export class ConditionalField{
         this.trigger.addEventListener(() => {
             this.check()
         })
+        this.initialCheck && this.check()
     }
 
     check(value: string | null = null) {
@@ -90,7 +93,7 @@ export class ConditionalField{
 
     private updateVisibility(show: boolean) {
         if (this.affectedBlock) {
-            return this.affectedBlock.classList.toggle('d-none', !show)
+            return this.affectedBlock.classList.toggle('dcf__hidden', !show)
         }
 
         this.affectedFields?.forEach(field => {
@@ -100,7 +103,7 @@ export class ConditionalField{
 
     private updateRequired(show: boolean) {
         this.affectedFields?.forEach(field => {
-            field.setRequired(show && this.shouldBeRequired)
+            field.setRequired(show)
         })
     }
 
@@ -243,7 +246,10 @@ export abstract class Field implements IField {
     }
 
     setRequired(required: boolean) {
-        this.required = required
+        /**
+         * Prevent setting required on non-required inputs that will be hidden
+         */
+        if(!this.required && required) return
         this.elements.forEach(element => {
             (element as HTMLInputElement).required = required
         })
@@ -256,19 +262,19 @@ export abstract class Field implements IField {
             this.elements.forEach(element => {
                 const parent = this.parentSelector?.(element)
                 if (parent) {
-                    parent.classList[action]('d-none')
+                    parent.classList[action]('dcf__hidden')
                 } else {
-                    element.classList[action]('d-none')
+                    element.classList[action]('dcf__hidden')
                 }
             })
         } else {
             this.elements.forEach(element => {
-                element.classList[action]('d-none')
+                element.classList[action]('dcf__hidden')
             })
 
             if (this.associatedElements) {
                 this.associatedElements.forEach(element => {
-                    element.classList[action]('d-none')
+                    element.classList[action]('dcf__hidden')
                 })
             }
         }

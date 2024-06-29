@@ -1,4 +1,4 @@
-.d-none{
+.dcf__hidden{
     display: none !important;
 }
 .dcf__animated{
@@ -8,7 +8,7 @@
     transition-behavior: allow-discrete;
     max-height: 1000px;
 }
-.dcf__animated.d-none{
+.dcf__animated.dcf__hidden{
     animation: dcf__disappear 0.5s ease-in-out 1;
     max-height: 0;
 }

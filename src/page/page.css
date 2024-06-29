@@ -64,7 +64,7 @@ h1 {
   padding: 2em;
 }
 
-.read-the-docs {
+.read-info {
   color: #888;
 }
 
@@ -111,6 +111,26 @@ fieldset > *:not(:last-child) {
 .form-label {
   display: block;
   margin-bottom: 0.5rem;
+}
+#result:has(pre:empty){
+  display: none;
+}
+#result {
+  background: #54e3601c;
+  padding: 20px;
+  margin-top: 2rem;
+  border-radius: 10px;
+  border: 1px solid #54e36094;
+}
+
+.w-100 {
+  width: 100%;
+}
+.m-0 {
+  margin: 0;
+}
+.mt-1 {
+  margin-top: 1rem;
 }
 
 @media (prefers-color-scheme: light) {

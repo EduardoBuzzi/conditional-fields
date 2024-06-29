@@ -1,9 +1,10 @@
 var __defProp = Object.defineProperty;
 var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
 var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
-const styles = ".d-none{display:none!important}.dcf__animated{animation:dcf__appear .5s ease-in-out 1;transition-property:display,max-height;transition-duration:.5s;transition-behavior:allow-discrete;max-height:1000px}.dcf__animated.d-none{animation:dcf__disappear .5s ease-in-out 1;max-height:0}@keyframes dcf__appear{0%{opacity:0;max-height:0}to{opacity:1;max-height:1000px}}@keyframes dcf__disappear{0%{opacity:1;max-height:1000px;display:block!important}to{opacity:0;max-height:0;display:none!important}}";
+/*! conditional-fields - v0.1.0 */
+const styles = ".dcf__hidden{display:none!important}.dcf__animated{animation:dcf__appear .5s ease-in-out 1;transition-property:display,max-height;transition-duration:.5s;transition-behavior:allow-discrete;max-height:1000px}.dcf__animated.dcf__hidden{animation:dcf__disappear .5s ease-in-out 1;max-height:0}@keyframes dcf__appear{0%{opacity:0;max-height:0}to{opacity:1;max-height:1000px}}@keyframes dcf__disappear{0%{opacity:1;max-height:1000px;display:block!important}to{opacity:0;max-height:0;display:none!important}}";
 class ConditionalField {
-  constructor(triggerSelector, value, shouldBeRequired = false, clearOnHide = true, affectedFields = [], affectedBlock, parentSelector) {
+  constructor(config) {
     /**
      * Selector of the field elements in the DOM that will trigger the conditional field.
      */
@@ -12,11 +13,10 @@ class ConditionalField {
      * Field responsible for the conditional behavior.
      */
     __publicField(this, "trigger");
-    __publicField(this, "value");
     /**
-     * If the dependent field should be required when the trigger rule is met.
+     * Value that will trigger the conditional field.
      */
-    __publicField(this, "shouldBeRequired");
+    __publicField(this, "value");
     /**
      * If the dependent field should be cleared when the trigger rule is not met.
      */
@@ -31,19 +31,23 @@ class ConditionalField {
      * Useful when you have a group of fields that should be hidden together.
      */
     __publicField(this, "affectedBlock");
-    this.triggerSelector = triggerSelector;
-    this.trigger = Field.createField(triggerSelector);
-    this.shouldBeRequired = shouldBeRequired;
-    this.clearOnHide = clearOnHide;
-    this.value = typeof value === "string" ? [value] : value;
-    this.affectedFields = affectedFields.map((affectedField) => {
-      if (parentSelector && !affectedField.parentSelector) {
-        affectedField.parentSelector = parentSelector;
+    /**
+     * Flag to indicate if the conditional field should be checked on initialization.
+     */
+    __publicField(this, "initialCheck", true);
+    this.triggerSelector = config.triggerSelector;
+    this.trigger = Field.createField(this.triggerSelector);
+    this.value = typeof config.value === "string" ? [config.value] : config.value;
+    this.clearOnHide = config.clearOnHide ?? true;
+    this.initialCheck = config.initialCheck ?? true;
+    this.affectedFields = config.affected.fields.map((affectedField) => {
+      if (config.affected.parentSelector && !affectedField.parentSelector) {
+        affectedField.parentSelector = config.affected.parentSelector;
       }
       return Field.createField(affectedField.selector, affectedField.required, affectedField.associatedElements, affectedField.parentSelector);
     }).filter((element) => element !== null);
-    if (affectedBlock) {
-      this.affectedBlock = document.querySelector(affectedBlock);
+    if (config.affected.block) {
+      this.affectedBlock = document.querySelector(config.affected.block);
       this.affectedBlock.classList.add("dcf__animated");
     }
     this.initialize();
@@ -53,6 +57,7 @@ class ConditionalField {
     this.trigger.addEventListener(() => {
       this.check();
     });
+    this.initialCheck && this.check();
   }
   check(value = null) {
     let show = false;
@@ -75,7 +80,7 @@ class ConditionalField {
   updateVisibility(show) {
     var _a;
     if (this.affectedBlock) {
-      return this.affectedBlock.classList.toggle("d-none", !show);
+      return this.affectedBlock.classList.toggle("dcf__hidden", !show);
     }
     (_a = this.affectedFields) == null ? void 0 : _a.forEach((field) => {
       field.toggleVisibility(show);
@@ -84,7 +89,7 @@ class ConditionalField {
   updateRequired(show) {
     var _a;
     (_a = this.affectedFields) == null ? void 0 : _a.forEach((field) => {
-      field.setRequired(show && this.shouldBeRequired);
+      field.setRequired(show);
     });
   }
   clearFields() {
@@ -203,7 +208,7 @@ class Field {
     });
   }
   setRequired(required) {
-    this.required = required;
+    if (!this.required && required) return;
     this.elements.forEach((element) => {
       element.required = required;
     });
@@ -215,18 +220,18 @@ class Field {
         var _a;
         const parent = (_a = this.parentSelector) == null ? void 0 : _a.call(this, element);
         if (parent) {
-          parent.classList[action]("d-none");
+          parent.classList[action]("dcf__hidden");
         } else {
-          element.classList[action]("d-none");
+          element.classList[action]("dcf__hidden");
         }
       });
     } else {
       this.elements.forEach((element) => {
-        element.classList[action]("d-none");
+        element.classList[action]("dcf__hidden");
       });
       if (this.associatedElements) {
         this.associatedElements.forEach((element) => {
-          element.classList[action]("d-none");
+          element.classList[action]("dcf__hidden");
         });
       }
     }
@@ -316,13 +321,12 @@ class ElementField extends Field {
     return null;
   }
 }
-function setupConditionalFields(config, initialCheck = true) {
+function setupConditionalFields(config) {
   if (!config || !config.length) {
     throw new Error("No configuration provided");
   }
   config.forEach(function(config2) {
-    var cf = new ConditionalField(config2.trigger, config2.value, true, config2.clearOnHide, config2.affected.fields, config2.affected.block, config2.affected.parentSelector);
-    if (initialCheck) cf.check();
+    new ConditionalField(config2);
   });
 }
 if (typeof window !== "undefined") {
