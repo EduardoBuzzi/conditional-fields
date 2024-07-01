@@ -6,42 +6,33 @@ export default defineConfig({
     copyPublicDir: false,
     minify: 'terser',
     terserOptions:{
-      compress: {
-        // drop_console: true,
-        // drop_debugger: true,
-        // ecma: 2015,
-        // keep_fargs: false,
-        // passes: 2,
-        // toplevel: true,
-        // unsafe: true,
-        // unsafe_arrows: true,
-        // unsafe_comps: true,
-        // unsafe_Function: true,
-        // unsafe_math: true,
-        // unsafe_symbols: true,
-        // unsafe_methods: true,
-        // unsafe_proto: true,
-        // unsafe_regexp: true,
-        // unsafe_undefined: true,
-        // unused: true,
+      compress:{
+        // keep_fnames: true,
+        // keep_classnames: true,
       },
-      // mangle: {
-      //   properties: {
-      //     // regex: /^_/,
-      //     // debug: true,
-      //   },
-      //   reserved: ['setupConditionalFields', 'ConditionalField']
-      // }
+      mangle: {
+        // properties: {
+        //   // regex: /^_/,
+        //   debug: false,
+        // },
+        reserved: ['setupConditionalFields', 'ConditionalField'],
+        // keep_classnames: true,
+        // keep_fnames: true,
+      }
     },
     lib: {
       entry: './src/conditional-fields.ts',
       name: 'conditional-fields',
       fileName: (format) => `conditional-fields.${format}.js`,
-      formats: ['es', 'umd', 'cjs'],
+      formats: ['umd'],
     },
     rollupOptions: {
       output: {
         banner: `/*! ${pkg.name} - v${pkg.version} */\n`,
+        globals: {
+          'setupConditionalFields': 'setupConditionalFields',
+          'ConditionalField': 'ConditionalField',
+        },
       },
     }
   }

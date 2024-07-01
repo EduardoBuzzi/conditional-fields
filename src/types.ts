@@ -1,6 +1,9 @@
+import { ConditionalField } from "./classes";
+
 declare global {
     interface Window { 
-        setupConditionalFields: (config: Config[]) => void; 
+        setupConditionalFields: (config: Config[]) => void;
+        ConditionalField: new (config: Config) => ConditionalField;
     }
 }
 

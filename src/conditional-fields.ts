@@ -13,4 +13,5 @@ function setupConditionalFields(config: Array<Config>) {
 
 if (typeof (window) !== 'undefined') {
 	window.setupConditionalFields = setupConditionalFields
+    window.ConditionalField = ConditionalField
 }
