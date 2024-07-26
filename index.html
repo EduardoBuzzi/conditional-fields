@@ -179,8 +179,10 @@
 
         setupConditionalFields([
           {
-            triggerSelector: '#has_blog',
-            value: 'Yes',
+            trigger: {
+              selector: '#has_blog',
+              value: 'Yes',
+            },
             affected: {
                 fields: [
                   {selector: '#blog_link', required: false, associatedElements: ['label[for="blog_link"]']},
@@ -190,8 +192,10 @@
             initialCheck: false
           },
           {
-            triggerSelector: '[name=services]',
-            value: 'Other',
+            trigger: {
+              selector: '[name=services]',
+              value: 'Other',
+            },
             affected: {
                 block: '#services_others_block',
                 fields: [
@@ -202,17 +206,21 @@
                 ],
             },
           },
-          {
-            triggerSelector: '#payment_method',
-            value: ['PayPal', 'Credit Card', 'Bank Transfer'],
-            affected: {
-                fields: [
-                  {selector: '#comments', required: true},
-                ],
-                parentSelector: (element) => element.parentElement,
-            },
-          },
         ])
+
+        new ConditionalField({
+          trigger: {
+            selector: '#payment_method',
+            value: ['PayPal', 'Credit Card', 'Bank Transfer'],
+          },
+          affected: {
+              fields: [
+                {selector: '#comments', required: true},
+              ],
+              parentSelector: (element) => element.parentElement,
+          },
+        })
+
       })
       
     </script>

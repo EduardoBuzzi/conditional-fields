@@ -1,7 +1,7 @@
 {
   "name": "conditional-fields",
   "private": true,
-  "version": "0.1.0",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -10,7 +10,12 @@
   },
   "devDependencies": {
     "terser": "^5.31.1",
-    "typescript": "^5.2.2",
-    "vite": "^5.2.0"
-  }
+    "typescript": "^5.5.4",
+    "vite": "^5.3.4"
+  },
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/conditional-fields.umd.js",
+  "module": "./dist/conditional-fields.es.js"
 }

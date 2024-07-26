@@ -1,5 +1,5 @@
 import { defineConfig } from 'vite'
-import pkg from './package.json';
+import { name, version } from './package.json';
 
 export default defineConfig({
   build: {
@@ -24,11 +24,11 @@ export default defineConfig({
       entry: './src/conditional-fields.ts',
       name: 'conditional-fields',
       fileName: (format) => `conditional-fields.${format}.js`,
-      formats: ['umd'],
+      formats: ['es', 'umd'],
     },
     rollupOptions: {
       output: {
-        banner: `/*! ${pkg.name} - v${pkg.version} */\n`,
+        banner: `/*! ${name} - v${version} */\n`,
         globals: {
           'setupConditionalFields': 'setupConditionalFields',
           'ConditionalField': 'ConditionalField',

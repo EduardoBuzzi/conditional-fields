@@ -41,9 +41,9 @@ export class ConditionalField {
     initialCheck: boolean = true
 
     constructor(config: Config){
-        this.triggerSelector = config.triggerSelector
+        this.triggerSelector = config.trigger.selector
         this.trigger = Field.createField(this.triggerSelector)
-        this.value = typeof config.value === 'string' ? [config.value] : config.value
+        this.value = typeof config.trigger.value === 'string' ? [config.trigger.value] : config.trigger.value
         this.clearOnHide = config.clearOnHide ?? true
         this.initialCheck = config.initialCheck ?? true
         

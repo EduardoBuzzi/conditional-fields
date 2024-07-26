@@ -8,11 +8,13 @@ declare global {
 }
 
 export type Config = {
-    triggerSelector: string
-    value: string | string[]
+    trigger: {
+        selector: string
+        value: string | string[]
+    }
+    affected: Affected
     clearOnHide?: boolean
     initialCheck?: boolean
-    affected: Affected
 }
 
 export type Affected = {

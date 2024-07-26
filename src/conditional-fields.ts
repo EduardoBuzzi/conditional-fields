@@ -7,7 +7,11 @@ function setupConditionalFields(config: Array<Config>) {
     }
 
     config.forEach(function (config) {
-        new ConditionalField(config)
+        try{
+            new ConditionalField(config)
+        } catch (e) {
+            console.error('Error initializing conditional field with config:', config, e)
+        }
     })
 }
 
