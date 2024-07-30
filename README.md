@@ -1,6 +1,6 @@
 # conditional-fields
 
-A TypeScript library to manage conditional fields in forms. This library allows you to show or hide form fields based on the values of other fields, improving the user experience by displaying only relevant fields.
+A JavaScript library written in TypeScript to manage conditional fields in forms. This library allows you to show or hide form fields based on the values of other fields, improving the user experience by displaying only relevant fields.
 
 ## Contents
 
@@ -48,7 +48,7 @@ Using the function, you can set multiple conditional fields at a time:
           ],
         },
       },
-      // some conditional fields
+      // Some additional conditional fields.
     ]);
   });
 </script>
@@ -61,35 +61,104 @@ Using the function, you can set multiple conditional fields at a time:
   document.addEventListener('DOMContentLoaded', () => {
     new ConditionalField({
       trigger: {
-        selector: '#payment_method',
-        value: ['PayPal', 'Credit Card', 'Bank Transfer'],
+        selector: '#triggerField',
+        value: ['option1', 'option2'],
       },
       affected: {
-          fields: [
-            {selector: '#comments', required: true},
-          ],
-          parentSelector: (element) => element.parentElement,
+        fields: [
+          { selector: '#field1', required: true },
+          { selector: '#field2', required: false },
+        ],
       },
-    })
+      clearOnHide: false,
+      initialCheck: false,
+    });
   });
 </script>
-
 ``` 
 
 ## Options
 
-The `setupConditionalFields` function accepts an array of configuration objects to define the behavior of each conditional field. Here are the available options:
+The `setupConditionalFields` function accepts an array of configuration objects, while the `ConditionalField` class accepts a single configuration object. These configurations define the behavior of each conditional field. Here are the available options:
 
 | Option | Type | Default | Description |
 | --- | --- | --- | --- |
-| triggerSelector | string |  | The CSS selector of the trigger field that controls the conditional behavior. |
-| value | string or Array<string> |  | The value(s) of the trigger field that will activate the conditional field. |
-| clearOnHide | boolean | `true` | If the dependent field should be cleared when the trigger rule is not met. |
-| affected | object |  | The fields and/or block that will be affected by the conditional behavior. |
-| affected.fields | Array<object> |  | The fields that will be shown/hidden based on the trigger value. |
-| affected.block | string | `null` | The CSS selector of a block that contains the affected fields. Useful for hiding/showing a group of fields together. |
-| initialCheck | boolean | `true` | If the conditional field should be checked on initialization. |
+| `trigger.selector` | string |  | The CSS selector of the trigger field that controls the conditional behavior. |
+| `trigger.value` | string or Array<string> |  | The value(s) of the trigger field that will activate the conditional field. |
+| `affected.fields` | Array<object> |  | The fields that will be shown/hidden based on the trigger value. |
+| `affected.block` | string | `null` | The CSS selector of a block that contains the affected fields. Useful for hiding/showing a group of fields together. |
+| `affected.parentSelector` | function | `null` | A function that returns the parent element of a field, allowing for parent elements to be shown/hidden alongside the fields. |
+| `clearOnHide` | boolean | `true` | If the dependent field should be cleared when the trigger rule is not met. |
+| `initialCheck` | boolean | `true` | If the conditional field should be checked on initialization. |
 
+## Examples
 
+### Example 1: Basic usage with a single trigger and multiple affected fields and associated elements, such as labels.
 
+```html
+<script>
+  setupConditionalFields([
+    {
+      trigger: {
+        selector: '#has_blog',
+        value: 'Yes',
+      },
+      affected: {
+          fields: [
+            {selector: '#blog_name', required: false, associatedElements: ['label[for="blog_name"]']},
+            {selector: '#blog_link', required: false, associatedElements: ['label[for="blog_link"]']},
+          ],
+      },
+      clearOnHide: false,
+      initialCheck: true
+    },
+  ])
+</script>
+```
 
+### Example 2: Using ConditionalField class with a parent selector
+
+```html
+<script>
+  new ConditionalField({
+    trigger: {
+      selector: '#payment_method',
+      value: ['PayPal', 'Credit Card', 'Bank Transfer'],
+    },
+    affected: {
+        fields: [
+          {selector: '#comments', required: true},
+        ],
+        parentSelector: (element) => element.parentElement,
+    },
+  })
+</script>
+```
+
+### Example 3: Using ConditionalField class with `affected.block` to manage a group of fields
+
+```html
+<script>
+  new ConditionalField({
+    {
+      trigger: {
+        selector: '#subscriptionType',
+        value: 'premium',
+      },
+      affected: {
+        block: '#premiumOptions',
+        fields: [
+          {selector: '#option1', required: false},
+          {selector: '#option2', required: false},
+          {selector: '#option3', required: false},
+        ],
+      },
+      clearOnHide: true,
+    },
+  })
+</script>
+```
+
+## License
+
+Open-sourced software licensed under the [MIT license](LICENSE).
