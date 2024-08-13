@@ -1,14 +1,14 @@
 .dcf__hidden{
     display: none !important;
 }
-.dcf__animated{
+.dcf__animated[data-dcf-interacted="true"]{
     animation: dcf__appear 0.5s ease-in-out 1;
     transition-property: display, max-height;
     transition-duration: 0.5s;
     transition-behavior: allow-discrete;
     max-height: 1000px;
 }
-.dcf__animated.dcf__hidden{
+.dcf__animated.dcf__hidden[data-dcf-interacted="true"]{
     animation: dcf__disappear 0.5s ease-in-out 1;
     max-height: 0;
 }

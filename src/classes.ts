@@ -67,37 +67,38 @@ export class ConditionalField {
         this.trigger.addEventListener(() => {
             this.check()
         })
-        this.initialCheck && this.check()
+        this.initialCheck && this.check(null, false)
     }
 
-    check(value: string | null = null) {
+    check(value: string | null = null, interacted: boolean = true) {
         let show = false
         
         if (!value) {
-            const values = this.trigger.getValues().filter(val => val) // Filtra valores vazios
+            const values = this.trigger.getValues().filter(val => val) // filter empty values
             if (values.length === 0) {
                 show = false
             } else {
-                show = values.some(val => this.value.includes(val)) // Verifica se pelo menos um valor está presente no array de valores
+                show = values.some(val => this.value.includes(val)) // check if any value matches
             }
         } else {
             show = this.value.includes(value)
         }
     
-        this.updateVisibility(show)
+        this.updateVisibility(show, interacted)
         this.updateRequired(show)
         if (!show && this.clearOnHide) {
             this.clearFields()
         }
     }    
 
-    private updateVisibility(show: boolean) {
+    private updateVisibility(show: boolean, interacted: boolean = true) {
         if (this.affectedBlock) {
+            this.affectedBlock.dataset.dcfInteracted = interacted.toString()
             return this.affectedBlock.classList.toggle('dcf__hidden', !show)
         }
 
         this.affectedFields?.forEach(field => {
-            field.toggleVisibility(show)
+            field.toggleVisibility(show, interacted)
         })
     }
 
@@ -210,6 +211,7 @@ export abstract class Field implements IField {
     private addClass(elements: Array<HTMLElement>) {
         elements.forEach(element => {
             element.classList.add('dcf__animated') // animated class is used for CSS animations
+            element.dataset.dcfInteracted = 'false'
         })
 
         if (this.parentSelector) {
@@ -217,6 +219,7 @@ export abstract class Field implements IField {
                 const parent = this.parentSelector?.(element)
                 if (parent) {
                     parent.classList.add('dcf__animated')
+                    parent.dataset.dcfInteracted = 'false'
                 }
             })
         }
@@ -224,6 +227,7 @@ export abstract class Field implements IField {
         if (this.associatedElements) {
             this.associatedElements.forEach(element => {
                 element.classList.add('dcf__animated')
+                element.dataset.dcfInteracted = 'false'
             })
         }
     }
@@ -255,28 +259,19 @@ export abstract class Field implements IField {
         })
     }
 
-    toggleVisibility(show: boolean) {
+    toggleVisibility(show: boolean, interacted: boolean = true) {
         const action = show ? 'remove' : 'add'
 
-        if (this.parentSelector) {
-            this.elements.forEach(element => {
-                const parent = this.parentSelector?.(element)
-                if (parent) {
-                    parent.classList[action]('dcf__hidden')
-                } else {
-                    element.classList[action]('dcf__hidden')
-                }
-            })
-        } else {
-            this.elements.forEach(element => {
-                element.classList[action]('dcf__hidden')
-            })
+        const applyAction = (element: HTMLElement) => {
+            const targetElement = this.parentSelector?.(element) || element
+            targetElement.classList[action]('dcf__hidden')
+            targetElement.dataset.dcfInteracted = interacted.toString()
+        }
 
-            if (this.associatedElements) {
-                this.associatedElements.forEach(element => {
-                    element.classList[action]('dcf__hidden')
-                })
-            }
+        this.elements.forEach(applyAction)
+    
+        if (this.associatedElements) {
+            this.associatedElements.forEach(applyAction)
         }
     }
 

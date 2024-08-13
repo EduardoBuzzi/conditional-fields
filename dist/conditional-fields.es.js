@@ -1,8 +1,8 @@
 var __defProp = Object.defineProperty;
 var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
 var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
-/*! conditional-fields - v1.0.0 */
-const styles = ".dcf__hidden{display:none!important}.dcf__animated{animation:dcf__appear .5s ease-in-out 1;transition-property:display,max-height;transition-duration:.5s;transition-behavior:allow-discrete;max-height:1000px}.dcf__animated.dcf__hidden{animation:dcf__disappear .5s ease-in-out 1;max-height:0}@keyframes dcf__appear{0%{opacity:0;max-height:0}to{opacity:1;max-height:1000px}}@keyframes dcf__disappear{0%{opacity:1;max-height:1000px;display:block!important}to{opacity:0;max-height:0;display:none!important}}";
+/*! conditional-fields - v1.0.1 */
+const styles = ".dcf__hidden{display:none!important}.dcf__animated[data-dcf-interacted=true]{animation:dcf__appear .5s ease-in-out 1;transition-property:display,max-height;transition-duration:.5s;transition-behavior:allow-discrete;max-height:1000px}.dcf__animated.dcf__hidden[data-dcf-interacted=true]{animation:dcf__disappear .5s ease-in-out 1;max-height:0}@keyframes dcf__appear{0%{opacity:0;max-height:0}to{opacity:1;max-height:1000px}}@keyframes dcf__disappear{0%{opacity:1;max-height:1000px;display:block!important}to{opacity:0;max-height:0;display:none!important}}";
 class ConditionalField {
   constructor(config) {
     /**
@@ -57,9 +57,9 @@ class ConditionalField {
     this.trigger.addEventListener(() => {
       this.check();
     });
-    this.initialCheck && this.check();
+    this.initialCheck && this.check(null, false);
   }
-  check(value = null) {
+  check(value = null, interacted = true) {
     let show = false;
     if (!value) {
       const values = this.trigger.getValues().filter((val) => val);
@@ -71,19 +71,20 @@ class ConditionalField {
     } else {
       show = this.value.includes(value);
     }
-    this.updateVisibility(show);
+    this.updateVisibility(show, interacted);
     this.updateRequired(show);
     if (!show && this.clearOnHide) {
       this.clearFields();
     }
   }
-  updateVisibility(show) {
+  updateVisibility(show, interacted = true) {
     var _a;
     if (this.affectedBlock) {
+      this.affectedBlock.dataset.dcfInteracted = interacted.toString();
       return this.affectedBlock.classList.toggle("dcf__hidden", !show);
     }
     (_a = this.affectedFields) == null ? void 0 : _a.forEach((field) => {
-      field.toggleVisibility(show);
+      field.toggleVisibility(show, interacted);
     });
   }
   updateRequired(show) {
@@ -182,6 +183,7 @@ class Field {
   addClass(elements) {
     elements.forEach((element) => {
       element.classList.add("dcf__animated");
+      element.dataset.dcfInteracted = "false";
     });
     if (this.parentSelector) {
       elements.forEach((element) => {
@@ -189,12 +191,14 @@ class Field {
         const parent = (_a = this.parentSelector) == null ? void 0 : _a.call(this, element);
         if (parent) {
           parent.classList.add("dcf__animated");
+          parent.dataset.dcfInteracted = "false";
         }
       });
     }
     if (this.associatedElements) {
       this.associatedElements.forEach((element) => {
         element.classList.add("dcf__animated");
+        element.dataset.dcfInteracted = "false";
       });
     }
   }
@@ -213,27 +217,17 @@ class Field {
       element.required = required;
     });
   }
-  toggleVisibility(show) {
+  toggleVisibility(show, interacted = true) {
     const action = show ? "remove" : "add";
-    if (this.parentSelector) {
-      this.elements.forEach((element) => {
-        var _a;
-        const parent = (_a = this.parentSelector) == null ? void 0 : _a.call(this, element);
-        if (parent) {
-          parent.classList[action]("dcf__hidden");
-        } else {
-          element.classList[action]("dcf__hidden");
-        }
-      });
-    } else {
-      this.elements.forEach((element) => {
-        element.classList[action]("dcf__hidden");
-      });
-      if (this.associatedElements) {
-        this.associatedElements.forEach((element) => {
-          element.classList[action]("dcf__hidden");
-        });
-      }
+    const applyAction = (element) => {
+      var _a;
+      const targetElement = ((_a = this.parentSelector) == null ? void 0 : _a.call(this, element)) || element;
+      targetElement.classList[action]("dcf__hidden");
+      targetElement.dataset.dcfInteracted = interacted.toString();
+    };
+    this.elements.forEach(applyAction);
+    if (this.associatedElements) {
+      this.associatedElements.forEach(applyAction);
     }
   }
 }
