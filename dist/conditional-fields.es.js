@@ -1,7 +1,7 @@
 var __defProp = Object.defineProperty;
 var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
 var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
-/*! conditional-fields - v1.0.1 */
+/*! conditional-fields - v1.0.2 */
 const styles = ".dcf__hidden{display:none!important}.dcf__animated[data-dcf-interacted=true]{animation:dcf__appear .5s ease-in-out 1;transition-property:display,max-height;transition-duration:.5s;transition-behavior:allow-discrete;max-height:1000px}.dcf__animated.dcf__hidden[data-dcf-interacted=true]{animation:dcf__disappear .5s ease-in-out 1;max-height:0}@keyframes dcf__appear{0%{opacity:0;max-height:0}to{opacity:1;max-height:1000px}}@keyframes dcf__disappear{0%{opacity:1;max-height:1000px;display:block!important}to{opacity:0;max-height:0;display:none!important}}";
 class ConditionalField {
   constructor(config) {
@@ -14,9 +14,17 @@ class ConditionalField {
      */
     __publicField(this, "trigger");
     /**
+     * Operator to be used in the conditional field.
+     */
+    __publicField(this, "operator");
+    /**
      * Value that will trigger the conditional field.
      */
     __publicField(this, "value");
+    /**
+     * Flag to indicate if the dependent field should be hidden when trigger is empty.
+     */
+    __publicField(this, "hideOnEmpty");
     /**
      * If the dependent field should be cleared when the trigger rule is not met.
      */
@@ -38,6 +46,8 @@ class ConditionalField {
     this.triggerSelector = config.trigger.selector;
     this.trigger = Field.createField(this.triggerSelector);
     this.value = typeof config.trigger.value === "string" ? [config.trigger.value] : config.trigger.value;
+    this.operator = config.trigger.operator ?? "equal";
+    this.hideOnEmpty = config.hideOnEmpty ?? true;
     this.clearOnHide = config.clearOnHide ?? true;
     this.initialCheck = config.initialCheck ?? true;
     this.affectedFields = config.affected.fields.map((affectedField) => {
@@ -61,15 +71,41 @@ class ConditionalField {
   }
   check(value = null, interacted = true) {
     let show = false;
+    const evaluateCondition = (fieldValue, triggerValue, operator) => {
+      switch (operator) {
+        case "equal":
+          return fieldValue === triggerValue;
+        case "notEqual":
+          return fieldValue !== triggerValue;
+        case "greaterThan":
+          return fieldValue > triggerValue;
+        case "lessThan":
+          return fieldValue < triggerValue;
+        case "greaterThanOrEqual":
+          return fieldValue >= triggerValue;
+        case "lessThanOrEqual":
+          return fieldValue <= triggerValue;
+        case "contains":
+          return triggerValue.includes(fieldValue);
+        case "startsWith":
+          return triggerValue.startsWith(fieldValue);
+        case "endsWith":
+          return triggerValue.endsWith(fieldValue);
+        default:
+          return fieldValue === triggerValue;
+      }
+    };
     if (!value) {
       const values = this.trigger.getValues().filter((val) => val);
       if (values.length === 0) {
-        show = false;
+        show = !this.hideOnEmpty;
       } else {
-        show = values.some((val) => this.value.includes(val));
+        show = values.some((val) => {
+          return this.value.some((fieldValue) => evaluateCondition(fieldValue, val, this.operator));
+        });
       }
     } else {
-      show = this.value.includes(value);
+      show = this.value.some((fieldValue) => evaluateCondition(fieldValue, value, this.operator));
     }
     this.updateVisibility(show, interacted);
     this.updateRequired(show);
@@ -240,6 +276,7 @@ class InputField extends Field {
       } else {
         input.value = "";
       }
+      input.dispatchEvent(new Event(this.getEventName()));
     });
   }
   getValues() {
@@ -273,6 +310,7 @@ class SelectField extends Field {
     this.elements.forEach((element) => {
       const select = element;
       select.selectedIndex = 0;
+      select.dispatchEvent(new Event(this.getEventName()));
     });
   }
   getValues() {
@@ -290,6 +328,7 @@ class TextareaField extends Field {
     this.elements.forEach((element) => {
       const textarea = element;
       textarea.value = "";
+      textarea.dispatchEvent(new Event(this.getEventName()));
     });
   }
   getValues() {

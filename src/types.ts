@@ -10,12 +10,25 @@ declare global {
 export type Config = {
     trigger: {
         selector: string
+        operator: ConfigOperators
         value: string | string[]
     }
     affected: Affected
+    hideOnEmpty?: boolean
     clearOnHide?: boolean
     initialCheck?: boolean
 }
+
+export type ConfigOperators = 
+    | 'equal' 
+    | 'notEqual' 
+    | 'greaterThan' 
+    | 'lessThan' 
+    | 'greaterThanOrEqual' 
+    | 'lessThanOrEqual' 
+    | 'contains' 
+    | 'startsWith' 
+    | 'endsWith';
 
 export type Affected = {
     block?: string // block that contains the fields (optional)

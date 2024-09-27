@@ -139,7 +139,35 @@
               <label class="form-label" for="comments">Comments or suggestions</label>
               <textarea class="form-control" id="comments" name="comments" placeholder="Comments or suggestions" required></textarea>
             </div>
-            
+          </fieldset>
+
+          <fieldset>
+            <div>
+              <label class="form-label" for="country">Country</label>
+              <select class="form-control" id="country" name="country" required>
+                <option value="">Select</option>
+                <option value="Brazil">Brazil</option>
+                <option value="United States">United States</option>
+                <option value="Canada">Canada</option>
+              </select>
+            </div>
+          
+            <div id="state-container">
+              <label class="form-label" for="state">State</label>
+              <select class="form-control" id="state" name="state" required>
+                <option value="">Select</option>
+                <option value="State 1">State 1</option>
+              </select>
+            </div>
+          
+            <div id="city-container">
+              <label class="form-label" for="city">City</label>
+              <select class="form-control" id="city" name="city" required>
+                <option value="">Select</option>
+                <option value="City 1">City 1</option>
+                <option value="City 2">City 2</option>
+              </select>
+            </div>
           </fieldset>
 
           <button class="w-100" id="btn">Send</button>
@@ -206,6 +234,18 @@
                 ],
             },
           },
+          {
+            trigger: {
+              selector: '[name=support]',
+              value: 'Yes',
+            },
+            affected: {
+                fields: [
+                  {selector: '[name=additional_resources]', required: true},
+                ],
+                parentSelector: (element) => element.parentElement.parentElement.parentElement,
+            },
+          },
         ])
 
         new ConditionalField({
@@ -216,6 +256,35 @@
           affected: {
               fields: [
                 {selector: '#comments', required: true},
+              ],
+              parentSelector: (element) => element.parentElement,
+          },
+        })
+
+        new ConditionalField({
+          trigger: {
+            selector: '#country',
+            operator: 'contains',
+            value: 'n',
+          },
+          affected: {
+              fields: [
+                {selector: '#state', required: true},
+                // {selector: '#city', required: true},
+              ],
+              parentSelector: (element) => element.parentElement,
+          },
+          hideOnEmpty: false,
+        })
+
+        new ConditionalField({
+          trigger: {
+            selector: '#state',
+            value: ['State 1'],
+          },
+          affected: {
+              fields: [
+                {selector: '#city', required: true},
               ],
               parentSelector: (element) => element.parentElement,
           },

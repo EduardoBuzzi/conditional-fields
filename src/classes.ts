@@ -1,4 +1,4 @@
-import { IField, Config } from './types'
+import { IField, Config, ConfigOperators } from './types'
 import styles from './conditional-fields.css?inline'
 
 export class ConditionalField {
@@ -14,9 +14,19 @@ export class ConditionalField {
     trigger: Field
 
     /**
+     * Operator to be used in the conditional field.
+     */
+    operator: ConfigOperators
+
+    /**
      * Value that will trigger the conditional field.
      */
-    value: string | Array<string>
+    value: Array<string>
+
+    /**
+     * Flag to indicate if the dependent field should be hidden when trigger is empty.
+     */
+    hideOnEmpty: boolean
 
     /**
      * If the dependent field should be cleared when the trigger rule is not met.
@@ -44,6 +54,9 @@ export class ConditionalField {
         this.triggerSelector = config.trigger.selector
         this.trigger = Field.createField(this.triggerSelector)
         this.value = typeof config.trigger.value === 'string' ? [config.trigger.value] : config.trigger.value
+        this.operator = config.trigger.operator ?? 'equal'
+
+        this.hideOnEmpty = config.hideOnEmpty ?? true
         this.clearOnHide = config.clearOnHide ?? true
         this.initialCheck = config.initialCheck ?? true
         
@@ -72,16 +85,43 @@ export class ConditionalField {
 
     check(value: string | null = null, interacted: boolean = true) {
         let show = false
+
+        const evaluateCondition = (fieldValue: string, triggerValue: string, operator: string) => {
+            switch (operator) {
+                case 'equal':
+                    return fieldValue === triggerValue;
+                case 'notEqual':
+                    return fieldValue !== triggerValue;
+                case 'greaterThan':
+                    return fieldValue > triggerValue;
+                case 'lessThan':
+                    return fieldValue < triggerValue;
+                case 'greaterThanOrEqual':
+                    return fieldValue >= triggerValue;
+                case 'lessThanOrEqual':
+                    return fieldValue <= triggerValue;
+                case 'contains':
+                    return triggerValue.includes(fieldValue);
+                case 'startsWith':
+                    return triggerValue.startsWith(fieldValue);
+                case 'endsWith':
+                    return triggerValue.endsWith(fieldValue);
+                default:
+                    return fieldValue === triggerValue;
+            }
+        };
         
         if (!value) {
-            const values = this.trigger.getValues().filter(val => val) // filter empty values
+            const values = this.trigger.getValues().filter(val => val);
             if (values.length === 0) {
-                show = false
+                show = !this.hideOnEmpty;
             } else {
-                show = values.some(val => this.value.includes(val)) // check if any value matches
+                show = values.some(val => {
+                    return this.value.some((fieldValue: string) => evaluateCondition(fieldValue, val, this.operator));
+                });
             }
         } else {
-            show = this.value.includes(value)
+            show = this.value.some((fieldValue: string) => evaluateCondition(fieldValue, value, this.operator));
         }
     
         this.updateVisibility(show, interacted)
@@ -286,6 +326,7 @@ export class InputField extends Field {
             } else {
                 input.value = ''
             }
+            input.dispatchEvent(new Event(this.getEventName()))
         })
     }
 
@@ -324,6 +365,7 @@ export class SelectField extends Field {
         this.elements.forEach(element => {
             const select = element as HTMLSelectElement
             select.selectedIndex = 0
+            select.dispatchEvent(new Event(this.getEventName()))
         })
     }
 
@@ -344,6 +386,7 @@ export class TextareaField extends Field {
         this.elements.forEach(element => {
             const textarea = element as HTMLTextAreaElement
             textarea.value = ''
+            textarea.dispatchEvent(new Event(this.getEventName()))
         })
     }
 
