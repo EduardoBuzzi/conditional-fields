@@ -84,10 +84,12 @@ The `setupConditionalFields` function accepts an array of configuration objects,
 | Option | Type | Default | Description |
 | --- | --- | --- | --- |
 | `trigger.selector` | string |  | The CSS selector of the trigger field that controls the conditional behavior. |
+| `trigger.operator` | string | equal | The operator to use for the condition. The available operators are: `equal`, `notEqual`, `greaterThan`, `lessThan`, `greaterThanOrEqual`, `lessThanOrEqual`, `contains`, `startsWith`, `endsWith`. |
 | `trigger.value` | string or Array<string> |  | The value(s) of the trigger field that will activate the conditional field. |
-| `affected.fields` | Array<object> |  | The fields that will be shown/hidden based on the trigger value. |
+| `affected.fields` | Array\<object\> |  | The fields that will be shown/hidden based on the trigger value. |
 | `affected.block` | string | `null` | The CSS selector of a block that contains the affected fields. Useful for hiding/showing a group of fields together. |
 | `affected.parentSelector` | function | `null` | A function that returns the parent element of a field, allowing for parent elements to be shown/hidden alongside the fields. |
+| `hideOnEmpty` | boolean | `true` | If the affected field should be hidden when the trigger field is empty, not just when the trigger rule is met. |
 | `clearOnHide` | boolean | `true` | If the dependent field should be cleared when the trigger rule is not met. |
 | `initialCheck` | boolean | `true` | If the conditional field should be checked on initialization. |
 
@@ -116,7 +118,7 @@ The `setupConditionalFields` function accepts an array of configuration objects,
 </script>
 ```
 
-### Example 2: Using ConditionalField class with a parent selector
+### Example 2: Using ConditionalField class with a parent selector and `hideOnEmpty`
 
 ```html
 <script>
@@ -131,6 +133,7 @@ The `setupConditionalFields` function accepts an array of configuration objects,
         ],
         parentSelector: (element) => element.parentElement,
     },
+    hideOnEmpty: false, // do not hide affected fields when trigger value is empty
   })
 </script>
 ```
@@ -155,6 +158,28 @@ The `setupConditionalFields` function accepts an array of configuration objects,
       },
       clearOnHide: true,
     },
+  })
+</script>
+```
+
+### Example 4: using `trigger.operator`
+
+```html
+<script>
+  new ConditionalField({
+      trigger: {
+        selector: '#age',
+        operator: 'greaterThanOrEqual',
+        value: 18,
+      },
+      affected: {
+        fields: [
+          {selector: '#adult_section', required: true},
+        ],
+        parentSelector: (element) => element.parentElement,
+      },
+      clearOnHide: true,
+      initialCheck: true,
   })
 </script>
 ```

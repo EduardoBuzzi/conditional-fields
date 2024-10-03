@@ -11,7 +11,7 @@ export type Config = {
     trigger: {
         selector: string
         operator: ConfigOperators
-        value: string | string[]
+        value: string | string[] | number | number[]
     }
     affected: Affected
     hideOnEmpty?: boolean

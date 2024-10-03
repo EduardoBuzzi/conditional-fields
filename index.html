@@ -170,6 +170,16 @@
             </div>
           </fieldset>
 
+          <fieldset>
+            <label class="form-label" for="age">Your age</label>
+            <input class="form-control" type="number" id="age" name="age">
+    
+            <div>
+              <label class="form-label" for="adult_section">Cool, you have 18+</label>
+              <input class="form-control" type="text" id="adult_section" name="adult_section">
+            </div>
+          </fieldset>
+
           <button class="w-100" id="btn">Send</button>
 
           <div id="result" role="alert">
@@ -270,7 +280,6 @@
           affected: {
               fields: [
                 {selector: '#state', required: true},
-                // {selector: '#city', required: true},
               ],
               parentSelector: (element) => element.parentElement,
           },
@@ -290,6 +299,22 @@
           },
         })
 
+        new ConditionalField({
+            trigger: {
+              selector: '#age',
+              operator: 'greaterThanOrEqual',
+              value: 18,
+            },
+            affected: {
+              fields: [
+                {selector: '#adult_section', required: true},
+              ],
+              parentSelector: (element) => element.parentElement,
+            },
+            hideOnEmpty: true,
+            clearOnHide: true,
+            initialCheck: true,
+        })
       })
       
     </script>

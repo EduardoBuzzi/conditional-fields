@@ -21,7 +21,7 @@ export class ConditionalField {
     /**
      * Value that will trigger the conditional field.
      */
-    value: Array<string>
+    value: Array<string | number>
 
     /**
      * Flag to indicate if the dependent field should be hidden when trigger is empty.
@@ -53,7 +53,7 @@ export class ConditionalField {
     constructor(config: Config){
         this.triggerSelector = config.trigger.selector
         this.trigger = Field.createField(this.triggerSelector)
-        this.value = typeof config.trigger.value === 'string' ? [config.trigger.value] : config.trigger.value
+        this.value = Array.isArray(config.trigger.value) ? config.trigger.value : [config.trigger.value];
         this.operator = config.trigger.operator ?? 'equal'
 
         this.hideOnEmpty = config.hideOnEmpty ?? true
@@ -85,27 +85,28 @@ export class ConditionalField {
 
     check(value: string | null = null, interacted: boolean = true) {
         let show = false
-
-        const evaluateCondition = (fieldValue: string, triggerValue: string, operator: string) => {
+        const evaluateCondition = (fieldValue: string, triggerValue: string | number, operator: string) => {
+            const numFieldValue = parseFloat(fieldValue);
+            const numTriggerValue = typeof triggerValue === 'string' ? parseFloat(triggerValue) : triggerValue;
             switch (operator) {
                 case 'equal':
-                    return fieldValue === triggerValue;
+                    return fieldValue === triggerValue.toString();
                 case 'notEqual':
-                    return fieldValue !== triggerValue;
+                    return fieldValue !== triggerValue.toString();
                 case 'greaterThan':
-                    return fieldValue > triggerValue;
+                    return numFieldValue > numTriggerValue;
                 case 'lessThan':
-                    return fieldValue < triggerValue;
+                    return numFieldValue < numTriggerValue;
                 case 'greaterThanOrEqual':
-                    return fieldValue >= triggerValue;
+                    return numFieldValue >= numTriggerValue;
                 case 'lessThanOrEqual':
-                    return fieldValue <= triggerValue;
+                    return numFieldValue <= numTriggerValue;
                 case 'contains':
-                    return triggerValue.includes(fieldValue);
+                    return fieldValue.includes(triggerValue.toString());
                 case 'startsWith':
-                    return triggerValue.startsWith(fieldValue);
+                    return fieldValue.startsWith(triggerValue.toString());
                 case 'endsWith':
-                    return triggerValue.endsWith(fieldValue);
+                    return fieldValue.endsWith(triggerValue.toString());
                 default:
                     return fieldValue === triggerValue;
             }
@@ -116,12 +117,12 @@ export class ConditionalField {
             if (values.length === 0) {
                 show = !this.hideOnEmpty;
             } else {
-                show = values.some(val => {
-                    return this.value.some((fieldValue: string) => evaluateCondition(fieldValue, val, this.operator));
+                show = values.some(fieldValue => {
+                    return this.value.some((triggerValue: string | number) => evaluateCondition(fieldValue, triggerValue, this.operator));
                 });
             }
         } else {
-            show = this.value.some((fieldValue: string) => evaluateCondition(fieldValue, value, this.operator));
+            show = this.value.some((triggerValue: string | number) => evaluateCondition(value, triggerValue, this.operator));
         }
     
         this.updateVisibility(show, interacted)
