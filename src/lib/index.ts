@@ -1,5 +1,5 @@
-import { ConditionalField } from './classes'
-import { Config } from './types'
+import { ConditionalField } from '@/lib/classes/ConditionalField'
+import { Config } from '@/lib/utils/types'
 
 function setupConditionalFields(config: Array<Config>) {
     if (!config || !config.length) {

@@ -193,27 +193,12 @@
         </p>
       </div>
     </div>
+    <script type="module" src="/src/lib/index.ts"></script>
     <script type="module" src="/src/page/page.ts"></script>
-    <script type="module" src="/src/conditional-fields.ts"></script>
 
     <script>
       document.addEventListener('DOMContentLoaded', () => {
-        document.querySelector('form').addEventListener('submit', (event) => {
-          event.preventDefault()
-          const formData = new FormData(event.target)
-          let data = {}
-          for(var pair of formData.entries()) {
-            if (pair[0] in data) {
-              if (!Array.isArray(data[pair[0]])) {
-                data[pair[0]] = [data[pair[0]]]
-              }
-              data[pair[0]].push(pair[1])
-              continue
-            }
-            data[pair[0]] = pair[1]
-          }
-          document.querySelector('#result pre').textContent = JSON.stringify(data, null, 2)
-        })
+        
 
         setupConditionalFields([
           {

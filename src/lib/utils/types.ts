@@ -1,4 +1,4 @@
-import { ConditionalField } from "./classes";
+import { ConditionalField } from "@/lib/classes/ConditionalField";
 
 declare global {
     interface Window { 

@@ -2,152 +2,6 @@ var __defProp = Object.defineProperty;
 var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
 var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
 /*! conditional-fields - v1.0.3 */
-const styles = ".dcf__hidden{display:none!important}.dcf__animated[data-dcf-interacted=true]{animation:dcf__appear .5s ease-in-out 1;transition-property:display,max-height;transition-duration:.5s;transition-behavior:allow-discrete;max-height:1000px}.dcf__animated.dcf__hidden[data-dcf-interacted=true]{animation:dcf__disappear .5s ease-in-out 1;max-height:0}@keyframes dcf__appear{0%{opacity:0;max-height:0}to{opacity:1;max-height:1000px}}@keyframes dcf__disappear{0%{opacity:1;max-height:1000px;display:block!important}to{opacity:0;max-height:0;display:none!important}}";
-class ConditionalField {
-  constructor(config) {
-    /**
-     * Selector of the field elements in the DOM that will trigger the conditional field.
-     */
-    __publicField(this, "triggerSelector");
-    /**
-     * Field responsible for the conditional behavior.
-     */
-    __publicField(this, "trigger");
-    /**
-     * Operator to be used in the conditional field.
-     */
-    __publicField(this, "operator");
-    /**
-     * Value that will trigger the conditional field.
-     */
-    __publicField(this, "value");
-    /**
-     * Flag to indicate if the dependent field should be hidden when trigger is empty.
-     */
-    __publicField(this, "hideOnEmpty");
-    /**
-     * If the dependent field should be cleared when the trigger rule is not met.
-     */
-    __publicField(this, "clearOnHide");
-    /**
-     * Array of elements that are affected by the conditional field.
-     * These elements will be affected when the trigger rule is met.
-     */
-    __publicField(this, "affectedFields");
-    /**
-     * Block that contains the fields affected by the conditional field.
-     * Useful when you have a group of fields that should be hidden together.
-     */
-    __publicField(this, "affectedBlock");
-    /**
-     * Flag to indicate if the conditional field should be checked on initialization.
-     */
-    __publicField(this, "initialCheck", true);
-    this.triggerSelector = config.trigger.selector;
-    this.trigger = Field.createField(this.triggerSelector);
-    this.value = Array.isArray(config.trigger.value) ? config.trigger.value : [config.trigger.value];
-    this.operator = config.trigger.operator ?? "equal";
-    this.hideOnEmpty = config.hideOnEmpty ?? true;
-    this.clearOnHide = config.clearOnHide ?? true;
-    this.initialCheck = config.initialCheck ?? true;
-    this.affectedFields = config.affected.fields.map((affectedField) => {
-      if (config.affected.parentSelector && !affectedField.parentSelector) {
-        affectedField.parentSelector = config.affected.parentSelector;
-      }
-      return Field.createField(affectedField.selector, affectedField.required, affectedField.associatedElements, affectedField.parentSelector);
-    }).filter((element) => element !== null);
-    if (config.affected.block) {
-      this.affectedBlock = document.querySelector(config.affected.block);
-      this.affectedBlock.classList.add("dcf__animated");
-    }
-    this.initialize();
-    ConditionalField.addUtilityClasses();
-  }
-  initialize() {
-    this.trigger.addEventListener(() => {
-      this.check();
-    });
-    this.initialCheck && this.check(null, false);
-  }
-  check(value = null, interacted = true) {
-    let show = false;
-    const evaluateCondition = (fieldValue, triggerValue, operator) => {
-      const numFieldValue = parseFloat(fieldValue);
-      const numTriggerValue = typeof triggerValue === "string" ? parseFloat(triggerValue) : triggerValue;
-      switch (operator) {
-        case "equal":
-          return fieldValue === triggerValue.toString();
-        case "notEqual":
-          return fieldValue !== triggerValue.toString();
-        case "greaterThan":
-          return numFieldValue > numTriggerValue;
-        case "lessThan":
-          return numFieldValue < numTriggerValue;
-        case "greaterThanOrEqual":
-          return numFieldValue >= numTriggerValue;
-        case "lessThanOrEqual":
-          return numFieldValue <= numTriggerValue;
-        case "contains":
-          return fieldValue.includes(triggerValue.toString());
-        case "startsWith":
-          return fieldValue.startsWith(triggerValue.toString());
-        case "endsWith":
-          return fieldValue.endsWith(triggerValue.toString());
-        default:
-          return fieldValue === triggerValue;
-      }
-    };
-    if (!value) {
-      const values = this.trigger.getValues().filter((val) => val);
-      if (values.length === 0) {
-        show = !this.hideOnEmpty;
-      } else {
-        show = values.some((fieldValue) => {
-          return this.value.some((triggerValue) => evaluateCondition(fieldValue, triggerValue, this.operator));
-        });
-      }
-    } else {
-      show = this.value.some((triggerValue) => evaluateCondition(value, triggerValue, this.operator));
-    }
-    this.updateVisibility(show, interacted);
-    this.updateRequired(show);
-    if (!show && this.clearOnHide) {
-      this.clearFields();
-    }
-  }
-  updateVisibility(show, interacted = true) {
-    var _a;
-    if (this.affectedBlock) {
-      this.affectedBlock.dataset.dcfInteracted = interacted.toString();
-      return this.affectedBlock.classList.toggle("dcf__hidden", !show);
-    }
-    (_a = this.affectedFields) == null ? void 0 : _a.forEach((field) => {
-      field.toggleVisibility(show, interacted);
-    });
-  }
-  updateRequired(show) {
-    var _a;
-    (_a = this.affectedFields) == null ? void 0 : _a.forEach((field) => {
-      field.setRequired(show);
-    });
-  }
-  clearFields() {
-    var _a;
-    (_a = this.affectedFields) == null ? void 0 : _a.forEach((field) => {
-      if (this.clearOnHide) {
-        field.clear();
-      }
-    });
-  }
-  static addUtilityClasses() {
-    if (!document.getElementById("dcf-utility-styles")) {
-      const style = document.createElement("style");
-      style.id = "dcf-utility-styles";
-      style.innerHTML = styles;
-      document.head.appendChild(style);
-    }
-  }
-}
 class Field {
   /**
    * @param selector Selector of the field elements in the DOM.
@@ -187,27 +41,6 @@ class Field {
       this.associatedElements = this.getElements(associatedElements);
     }
     this.addClass(this.elements);
-  }
-  /**
-   * Method to create a new instance of the Field class.
-   * @param selector Selector of the field elements in the DOM.
-   * @param required Flag to indicate if the field is required.
-   * @returns Returns a new instance of the Field class.
-   */
-  static createField(selector, required = false, associatedElements, parentSelector) {
-    let firstElement;
-    if (!(firstElement = document.querySelector(selector))) {
-      throw new Error(`No elements found for selector: ${selector}`);
-    }
-    if (firstElement.tagName === "INPUT") {
-      return new InputField(selector, required, associatedElements, parentSelector);
-    } else if (firstElement.tagName === "SELECT") {
-      return new SelectField(selector, required, associatedElements, parentSelector);
-    } else if (firstElement.tagName === "TEXTAREA") {
-      return new TextareaField(selector, required, associatedElements, parentSelector);
-    } else {
-      return new ElementField(selector, required, associatedElements, parentSelector);
-    }
   }
   getElements(selector) {
     const elements = document.querySelectorAll(
@@ -354,6 +187,175 @@ class ElementField extends Field {
   }
   getEventName() {
     return null;
+  }
+}
+class FieldFactory {
+  /**
+   * Method to create a new instance of the Field class.
+   * @param selector Selector of the field elements in the DOM.
+   * @param required Flag to indicate if the field is required.
+   * @returns Returns a new instance of the Field class.
+   */
+  static createField(selector, required = false, associatedElements, parentSelector) {
+    let firstElement;
+    if (!(firstElement = document.querySelector(selector))) {
+      throw new Error(`No elements found for selector: ${selector}`);
+    }
+    if (firstElement.tagName === "INPUT") {
+      return new InputField(selector, required, associatedElements, parentSelector);
+    } else if (firstElement.tagName === "SELECT") {
+      return new SelectField(selector, required, associatedElements, parentSelector);
+    } else if (firstElement.tagName === "TEXTAREA") {
+      return new TextareaField(selector, required, associatedElements, parentSelector);
+    } else {
+      return new ElementField(selector, required, associatedElements, parentSelector);
+    }
+  }
+}
+const styles = ".dcf__hidden{display:none!important}.dcf__animated[data-dcf-interacted=true]{animation:dcf__appear .5s ease-in-out 1;transition-property:display,max-height;transition-duration:.5s;transition-behavior:allow-discrete;max-height:1000px}.dcf__animated.dcf__hidden[data-dcf-interacted=true]{animation:dcf__disappear .5s ease-in-out 1;max-height:0}@keyframes dcf__appear{0%{opacity:0;max-height:0}to{opacity:1;max-height:1000px}}@keyframes dcf__disappear{0%{opacity:1;max-height:1000px;display:block!important}to{opacity:0;max-height:0;display:none!important}}";
+class ConditionalField {
+  constructor(config) {
+    /**
+     * Selector of the field elements in the DOM that will trigger the conditional field.
+     */
+    __publicField(this, "triggerSelector");
+    /**
+     * Field responsible for the conditional behavior.
+     */
+    __publicField(this, "trigger");
+    /**
+     * Operator to be used in the conditional field.
+     */
+    __publicField(this, "operator");
+    /**
+     * Value that will trigger the conditional field.
+     */
+    __publicField(this, "value");
+    /**
+     * Flag to indicate if the dependent field should be hidden when trigger is empty.
+     */
+    __publicField(this, "hideOnEmpty");
+    /**
+     * If the dependent field should be cleared when the trigger rule is not met.
+     */
+    __publicField(this, "clearOnHide");
+    /**
+     * Array of elements that are affected by the conditional field.
+     * These elements will be affected when the trigger rule is met.
+     */
+    __publicField(this, "affectedFields");
+    /**
+     * Block that contains the fields affected by the conditional field.
+     * Useful when you have a group of fields that should be hidden together.
+     */
+    __publicField(this, "affectedBlock");
+    /**
+     * Flag to indicate if the conditional field should be checked on initialization.
+     */
+    __publicField(this, "initialCheck", true);
+    this.triggerSelector = config.trigger.selector;
+    this.trigger = FieldFactory.createField(this.triggerSelector);
+    this.value = Array.isArray(config.trigger.value) ? config.trigger.value : [config.trigger.value];
+    this.operator = config.trigger.operator ?? "equal";
+    this.hideOnEmpty = config.hideOnEmpty ?? true;
+    this.clearOnHide = config.clearOnHide ?? true;
+    this.initialCheck = config.initialCheck ?? true;
+    this.affectedFields = config.affected.fields.map((affectedField) => {
+      if (config.affected.parentSelector && !affectedField.parentSelector) {
+        affectedField.parentSelector = config.affected.parentSelector;
+      }
+      return FieldFactory.createField(affectedField.selector, affectedField.required, affectedField.associatedElements, affectedField.parentSelector);
+    }).filter((element) => element !== null);
+    if (config.affected.block) {
+      this.affectedBlock = document.querySelector(config.affected.block);
+      this.affectedBlock.classList.add("dcf__animated");
+    }
+    this.initialize();
+    ConditionalField.addUtilityClasses();
+  }
+  initialize() {
+    this.trigger.addEventListener(() => {
+      this.check();
+    });
+    this.initialCheck && this.check(null, false);
+  }
+  check(value = null, interacted = true) {
+    let show = false;
+    const evaluateCondition = (fieldValue, triggerValue, operator) => {
+      const numFieldValue = parseFloat(fieldValue);
+      const numTriggerValue = typeof triggerValue === "string" ? parseFloat(triggerValue) : triggerValue;
+      switch (operator) {
+        case "equal":
+          return fieldValue === triggerValue.toString();
+        case "notEqual":
+          return fieldValue !== triggerValue.toString();
+        case "greaterThan":
+          return numFieldValue > numTriggerValue;
+        case "lessThan":
+          return numFieldValue < numTriggerValue;
+        case "greaterThanOrEqual":
+          return numFieldValue >= numTriggerValue;
+        case "lessThanOrEqual":
+          return numFieldValue <= numTriggerValue;
+        case "contains":
+          return fieldValue.includes(triggerValue.toString());
+        case "startsWith":
+          return fieldValue.startsWith(triggerValue.toString());
+        case "endsWith":
+          return fieldValue.endsWith(triggerValue.toString());
+        default:
+          return fieldValue === triggerValue;
+      }
+    };
+    if (!value) {
+      const values = this.trigger.getValues().filter((val) => val);
+      if (values.length === 0) {
+        show = !this.hideOnEmpty;
+      } else {
+        show = values.some((fieldValue) => {
+          return this.value.some((triggerValue) => evaluateCondition(fieldValue, triggerValue, this.operator));
+        });
+      }
+    } else {
+      show = this.value.some((triggerValue) => evaluateCondition(value, triggerValue, this.operator));
+    }
+    this.updateVisibility(show, interacted);
+    this.updateRequired(show);
+    if (!show && this.clearOnHide) {
+      this.clearFields();
+    }
+  }
+  updateVisibility(show, interacted = true) {
+    var _a;
+    if (this.affectedBlock) {
+      this.affectedBlock.dataset.dcfInteracted = interacted.toString();
+      return this.affectedBlock.classList.toggle("dcf__hidden", !show);
+    }
+    (_a = this.affectedFields) == null ? void 0 : _a.forEach((field) => {
+      field.toggleVisibility(show, interacted);
+    });
+  }
+  updateRequired(show) {
+    var _a;
+    (_a = this.affectedFields) == null ? void 0 : _a.forEach((field) => {
+      field.setRequired(show);
+    });
+  }
+  clearFields() {
+    var _a;
+    (_a = this.affectedFields) == null ? void 0 : _a.forEach((field) => {
+      if (this.clearOnHide) {
+        field.clear();
+      }
+    });
+  }
+  static addUtilityClasses() {
+    if (!document.getElementById("dcf-utility-styles")) {
+      const style = document.createElement("style");
+      style.id = "dcf-utility-styles";
+      style.innerHTML = styles;
+      document.head.appendChild(style);
+    }
   }
 }
 function setupConditionalFields(config) {

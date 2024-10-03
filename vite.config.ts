@@ -1,5 +1,10 @@
 import { defineConfig } from 'vite'
 import { name, version } from './package.json';
+import path from 'path'
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 export default defineConfig({
   build: {
@@ -21,7 +26,7 @@ export default defineConfig({
       }
     },
     lib: {
-      entry: './src/conditional-fields.ts',
+      entry: './src/lib/index.ts',
       name: 'conditional-fields',
       fileName: (format) => `conditional-fields.${format}.js`,
       formats: ['es', 'umd'],
@@ -34,6 +39,11 @@ export default defineConfig({
           'ConditionalField': 'ConditionalField',
         },
       },
+    }
+  },
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, 'src')
     }
   }
 })
