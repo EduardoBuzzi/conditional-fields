@@ -1,7 +1,7 @@
 var __defProp = Object.defineProperty;
 var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
 var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
-/*! conditional-fields - v1.0.2 */
+/*! conditional-fields - v1.0.3 */
 const styles = ".dcf__hidden{display:none!important}.dcf__animated[data-dcf-interacted=true]{animation:dcf__appear .5s ease-in-out 1;transition-property:display,max-height;transition-duration:.5s;transition-behavior:allow-discrete;max-height:1000px}.dcf__animated.dcf__hidden[data-dcf-interacted=true]{animation:dcf__disappear .5s ease-in-out 1;max-height:0}@keyframes dcf__appear{0%{opacity:0;max-height:0}to{opacity:1;max-height:1000px}}@keyframes dcf__disappear{0%{opacity:1;max-height:1000px;display:block!important}to{opacity:0;max-height:0;display:none!important}}";
 class ConditionalField {
   constructor(config) {
@@ -45,7 +45,7 @@ class ConditionalField {
     __publicField(this, "initialCheck", true);
     this.triggerSelector = config.trigger.selector;
     this.trigger = Field.createField(this.triggerSelector);
-    this.value = typeof config.trigger.value === "string" ? [config.trigger.value] : config.trigger.value;
+    this.value = Array.isArray(config.trigger.value) ? config.trigger.value : [config.trigger.value];
     this.operator = config.trigger.operator ?? "equal";
     this.hideOnEmpty = config.hideOnEmpty ?? true;
     this.clearOnHide = config.clearOnHide ?? true;
@@ -72,25 +72,27 @@ class ConditionalField {
   check(value = null, interacted = true) {
     let show = false;
     const evaluateCondition = (fieldValue, triggerValue, operator) => {
+      const numFieldValue = parseFloat(fieldValue);
+      const numTriggerValue = typeof triggerValue === "string" ? parseFloat(triggerValue) : triggerValue;
       switch (operator) {
         case "equal":
-          return fieldValue === triggerValue;
+          return fieldValue === triggerValue.toString();
         case "notEqual":
-          return fieldValue !== triggerValue;
+          return fieldValue !== triggerValue.toString();
         case "greaterThan":
-          return fieldValue > triggerValue;
+          return numFieldValue > numTriggerValue;
         case "lessThan":
-          return fieldValue < triggerValue;
+          return numFieldValue < numTriggerValue;
         case "greaterThanOrEqual":
-          return fieldValue >= triggerValue;
+          return numFieldValue >= numTriggerValue;
         case "lessThanOrEqual":
-          return fieldValue <= triggerValue;
+          return numFieldValue <= numTriggerValue;
         case "contains":
-          return triggerValue.includes(fieldValue);
+          return fieldValue.includes(triggerValue.toString());
         case "startsWith":
-          return triggerValue.startsWith(fieldValue);
+          return fieldValue.startsWith(triggerValue.toString());
         case "endsWith":
-          return triggerValue.endsWith(fieldValue);
+          return fieldValue.endsWith(triggerValue.toString());
         default:
           return fieldValue === triggerValue;
       }
@@ -100,12 +102,12 @@ class ConditionalField {
       if (values.length === 0) {
         show = !this.hideOnEmpty;
       } else {
-        show = values.some((val) => {
-          return this.value.some((fieldValue) => evaluateCondition(fieldValue, val, this.operator));
+        show = values.some((fieldValue) => {
+          return this.value.some((triggerValue) => evaluateCondition(fieldValue, triggerValue, this.operator));
         });
       }
     } else {
-      show = this.value.some((fieldValue) => evaluateCondition(fieldValue, value, this.operator));
+      show = this.value.some((triggerValue) => evaluateCondition(value, triggerValue, this.operator));
     }
     this.updateVisibility(show, interacted);
     this.updateRequired(show);
